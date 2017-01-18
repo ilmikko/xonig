@@ -6,6 +6,7 @@ if (console) {
 }
 console = new Proxy({},{get:function(_,key){
         return function(){
+                // etkjopa
                 log.apply(console,arguments);
         }
 }});
