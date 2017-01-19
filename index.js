@@ -1,12 +1,34 @@
 require("./console.js");
-console.squeak();
-// Cannot change anything below this line.
-console.time("Rant");
-console.log("Here starts the source code");
-console.info("Basically, the whole console is unreliable");
-console.warn("So what this module should do is either make it reliable");
-console.error("Or make so that these functions do not do anything!");
-console.debug("Because this is only used for debug and should be removed anyways.");
-console.timeEnd("Rant");
-console.success();
-// Tada! You have succeeded without errors!
+console.log("Initializing...");
+
+const config=require("./conf.json");
+
+const http=require("http");
+
+const mime=require("./mime.js"),file=require("./file.js");
+
+// TODO:
+// What am I TRYING TODO here?
+// 1. Templating is now a thing that just happens (when storing to RAM)
+// 2. Hidden files won't get served, nope, just won't serve
+// 3. Integration with nginx, apache, whatever. Use their mime.types
+// 4. JS processing is now a thing that just happens (to text/node files...)
+// 5. Ability to access Node.js serve directory (of course! We don't want to serve _everything_, but we want to BE ABLE TO do that.)
+// 6. Serving streams... boooooooring...
+// ... SEPARATE MODULES?
+// 7. MongoDB
+// 8. CAS. The bloody CAS.
+
+mime.updateCache();
+file.updateCache();
+
+var server = http.createServer(function(req,res){
+        console.debug("Incoming request");
+        // 1. Parse the request path
+        // 2. Serve the file in RAM (don't serve ANYTHING else)
+
+});
+
+server.listen(config.port,function(){
+        console.info("Server now listening on port %s",config.port);
+});
