@@ -2,14 +2,18 @@ const config=require("./conf.json");
 
 var exts={},types={};
 
-const fs=require("fs");
+const pm=require("path"),fs=require("fs");
 
 const extend=function(a,b){for (var g in b) a[g]=b[g];return b;}
+
+function extension(path){
+        return "."+pm.basename(path).replace(/.*\./,"");
+}
 
 module.exports=(function init(){
         console.info("Mime.js initializing...");
 
-        function updateCache(){
+        function updateCache(callback){
                 console.info("Updating mime type cache...");
                 // Currently only nginx's mime file type supported, feel free to make your own parser! :)
                 var parser=function(data){
@@ -30,7 +34,8 @@ module.exports=(function init(){
                 });
                 try{
                         extend(types,parser(data));
-                        console.log("Done loading mime types!");
+                        console.info("Mime types updated!");
+                        if (callback) callback();
                 }
                 catch(err){
                         console.warn("Error parsing mime types from disk! "+err);
@@ -41,6 +46,9 @@ module.exports=(function init(){
                 updateCache:updateCache,
                 types:types,
                 exts:exts,
+                get:function(path){
+                        return exts[extension(path)]||config.mimetypes_default;
+                },
                 split:function(mime){
                         return mime.split("/");
                 },

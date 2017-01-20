@@ -1,11 +1,11 @@
 require("./console.js");
-console.log("Initializing...");
+console.info("Initializing...");
 
 const config=require("./conf.json");
 
 const http=require("http");
 
-const mime=require("./mime.js"),file=require("./file.js");
+const mime=require("./mime.js"),file=require("./file.js"),serve=require("./serve.js");
 
 // TODO:
 // What am I TRYING TODO here?
@@ -19,16 +19,36 @@ const mime=require("./mime.js"),file=require("./file.js");
 // 7. MongoDB
 // 8. CAS. The bloody CAS.
 
-mime.updateCache();
-file.updateCache();
-
 var server = http.createServer(function(req,res){
         console.debug("Incoming request");
         // 1. Parse the request path
-        // 2. Serve the file in RAM (don't serve ANYTHING else)
+        // 2. Serve the file in RAM (don't serve ANYTHING else (:security:))
 
+        var status=200,headers={},body="";
+
+        var filepath=req.url;
+
+        if (filepath in file.cache){
+                status=200;
+                headers["content-type"]=mime.get(filepath);
+                body=file.cache[filepath];
+                headers["content-length"]=Buffer.byteLength(body);
+        }else{
+                status=404;
+                headers["content-type"]="text/plain";
+                body=http.STATUS_CODES[status];
+                headers["content-length"]=Buffer.byteLength(body);
+        }
+        res.writeHead(status,headers);
+        res.end(body);
+        console.log("%s request %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,status);
 });
 
-server.listen(config.port,function(){
-        console.info("Server now listening on port %s",config.port);
+mime.updateCache(function(){
+        file.updateCache(function(){
+                console.info("Server initialized!");
+                server.listen(config.port,function(){
+                        console.info("Server now listening on port %s",config.port);
+                });
+        });
 });

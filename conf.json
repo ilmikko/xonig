@@ -2,5 +2,6 @@
         "port":2222,
         "dynamic_dir":"./serve",
         "static_dir":"/srv/http",
-        "mimetypes_file_path":"/etc/nginx/mime.types"
+        "mimetypes_file_path":"/etc/nginx/mime.types",
+        "mimetypes_default":"application/octet-stream"
 }
