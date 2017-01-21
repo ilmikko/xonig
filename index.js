@@ -3,17 +3,16 @@ console.info("Initializing...");
 
 const config=require("./conf.json");
 
-const http=require("http");
+const http=require("http"),pm=require("path"),cp=require("child_process");
 
 const mime=require("./mime.js"),file=require("./file.js"),serve=require("./serve.js");
 
 // TODO:
-// What am I TRYING TODO here?
-// 1. Templating is now a thing that just happens (when storing to RAM)
-// 2. Hidden files won't get served, nope, just won't serve
-// 3. Integration with nginx, apache, whatever. Use their mime.types
+// XXX 1. Templating is now a thing that just happens (when storing to RAM)
+// XXX 2. Hidden files won't get served (CACHED AT ALL), nope, just won't serve
+// XXX 3. Integration with nginx, apache, whatever. Use their mime.types
 // 4. JS processing is now a thing that just happens (to text/node files...)
-// 5. Ability to access Node.js serve directory (of course! We don't want to serve _everything_, but we want to BE ABLE TO do that.)
+// XXX 5. Ability to access Node.js serve directory (of course! We don't want to serve _everything_, but we want to BE ABLE TO do that.)
 // 6. Serving streams... boooooooring...
 // ... SEPARATE MODULES?
 // 7. MongoDB
@@ -26,8 +25,9 @@ var server = http.createServer(function(req,res){
 
         var status=200,headers={},body="";
 
-        var filepath=req.url;
+        var filepath=pm.normalize(req.url);
 
+        // Dynamic content
         if (filepath in file.cache){
                 status=200;
                 headers["content-type"]=mime.get(filepath);
@@ -43,6 +43,8 @@ var server = http.createServer(function(req,res){
         res.end(body);
         console.log("%s request %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,status);
 });
+
+cp.fork("./serve.js");
 
 mime.updateCache(function(){
         file.updateCache(function(){
