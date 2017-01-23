@@ -14,6 +14,7 @@ var format={
         debug:"\x1b[36m%s\x1b[0m",
         error:"\x1b[31mERROR: %s\x1b[0m",
         warn:"\x1b[33mWarn! %s\x1b[0m",
+        back:"\x1b[35m> %s\x1b[0m",
         squeak:"\x1b[5m\x1b[46mSqueak! %s\x1b[0m",
         mass:"\x1b[2m%s\x1b[22m"
 };
@@ -22,11 +23,13 @@ console = new Proxy({
         time:timestart,
         timeEnd:timeend,
         format:format
-},{get:function(target,key){
-        return function(){
-                if (key in target) target[key].apply(console,arguments); else {
-                        if (key in format) arguments[0]=format[key].replace("%s",arguments[0]);
-                        log.apply(console,arguments);
+},{
+        get:function(target,key){
+                if (key in target) return target[key]; else {
+                        return function(){
+                                if (key in format) arguments[0]=format[key].replace("%s",arguments[0]);
+                                log.apply(console,arguments);
+                        }
                 }
         }
-}});
+});

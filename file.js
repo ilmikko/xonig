@@ -44,13 +44,13 @@ function updateCache(callback){
                         console.mass("Templating %s...",path);
                         data=template(data);
                 }else{
-                        console.debug("CACHING :%s",path);
-
                         mimetype=mime.get(id);
                         if (mime.first(mimetype)!="text"){
                                 console.debug("IGNORING:%s",path);
                                 console.warn("Cache ignoring non-text file %s (type %s)",path,mimetype);
                                 return;
+                        }else{
+                                console.debug("CACHING :%s",path);
                         }
 
                         console.mass("Reading %s...",path);
