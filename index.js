@@ -9,7 +9,8 @@ const http=require("http"),pm=require("path"),cp=require("child_process");
 const mime=require("./mime.js"),file=require("./file.js"),serve=require("./serve.js");
 
 // TODO:
-// 11. Console!!! So that we don't need to restart the server, ever! Also, get dem stats.
+// XXX (STILL A TODO, ALBEIT IT'S SOMEWHAT FINISHED RIGHT NOW) V
+// XXX ^ 11. Console!!! So that we don't need to restart the server, ever! Also, get dem stats.
 // XXX 1. Templating is now a thing that just happens (when storing to RAM)
 // XXX 2. Hidden files won't get served (CACHED AT ALL), nope, just won't serve
 // XXX 3. Integration with nginx, apache, whatever. Use their mime.types
