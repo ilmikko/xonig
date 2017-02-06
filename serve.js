@@ -1,2 +1,1 @@
-//TODO TODO TODO TODO
-console.warn("Todo: serve.js");
+// For serving more complex dynamic files
