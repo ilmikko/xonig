@@ -51,8 +51,16 @@ module.exports=(function init(){
                 },
                 types:{},
                 exts:{},
+                match:function(mime,search){
+                        search=this.split(search);
+                        mime=this.split(mime);
+
+                        if (mime[0]==search[0]||search[0]=="*")
+                                if (mime[1]==search[1]||search[1]=="*") return true;
+                        return false;
+                },
                 get:function(path){
-                        return this.exts[extension(path)]||config.mimetypes_default;
+                        return this.exts[extension(path)]||config.mime.default;
                 },
                 split:function(mime){
                         return mime.split("/");

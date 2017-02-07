@@ -16,7 +16,10 @@ var alias={
 };
 
 var help={
-        "help":"But nobody came."
+        "help":"Show help about a command or all of the commands\nUsage: help [command]\nThe command line works in global scope, which means you can access some of the program defined functions internally.\n\nThe preferred way to run commands would be to use 'console.commands[<command>](<arguments>)', but for your convenience the interpreter tries its best to guess and translate simple unix-like command lines to their JavaScript equivalents.\nSo, for example, if you typed 'help help', you can see the interpretation below it - translated to 'console.commands['help'](\"help\")'.\nUse this with caution, however, and if it doesn't work, just use its JavaScript equivalent.\n\nUsing Object.keys() is recommended for finding out what properties of an object you can access.\nYou can inspect types of properties and much more.\n",
+        "alias":"Show or edit aliases\nUsage: alias [name[=value]]\nNote that aliases are not kept across runs (we don't have the functionality (yet))",
+        "echo":"Echo text on screen\nUsage: echo [text1] [...] [textN]",
+        "exit":"Close the process, optionally with a status code\nUsage: exit [code]"
 };
 
 function parseInput(input){
@@ -35,16 +38,11 @@ function parseInput(input){
                         var cmd=input[0],params=input.slice(1);
 
                         if (cmd in console.commands){
-                                // help asd -> help("asd");
-                                // exit 1 -> exit(1);
-                                // help asd basd -> help("asd","basd");
-
                                 var newinput="console.commands['"+cmd+"']("+parseParams(params).join(",")+");";
 
                                 console.massback(newinput); // Tell the user what we're ACTUALLY running
-
-                                output=Function("return "+newinput);
-                                console.back(output);
+                                output=Function("return "+newinput)();
+                                if (output) console.back(output);
                         }else{
                                 console.back("Cannot parse your input:");
                                 console.error(err);
@@ -80,11 +78,13 @@ var commands = console.commands = new Proxy({
         },
         help:function helpc(get){
                 if (!get){
-                        console.back("Welcome to the JavaScript console.");
+                        console.back("Welcome to the JavaScript console. For more detailed information, please run 'help help'");
 
                         console.back("All available commands:");
                         for (var g in console.commands) {
-                                console.back("%s - %s",g,helpc(g));
+                                let text=help[g];
+                                text=text.slice(0,text.indexOf("\n")); // Show only first line
+                                console.back("%s - %s",g,text);
                         }
                 }else{
                         return help[get]||"No help found for "+get;

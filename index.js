@@ -11,7 +11,6 @@ global.config=require("./conf.json");
 
 global.mime=require("./mime.js");
 global.file=require("./file.js");
-global.serve=require("./serve.js");
 
 // TODO:
 // XXX (STILL A TODO, ALBEIT IT'S SOMEWHAT FINISHED RIGHT NOW) V
@@ -37,14 +36,18 @@ var server = http.createServer(function(req,res){
                 console.log("%s request %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,status);
         }
 
-        var status=200,headers={},body="";
-
         var filepath=pm.normalize(req.url);
 
         // TODO: Dynamic content
+        // TODO: Serving content
         if (filepath in file.cache){
+                // Lightning serving
                 serve(file.cache[filepath]);
+        }else if (filepath in file.nodes){
+                // Node serving
+                subprocess.serve(req,res,serve);
         }else{
+                // Fallback to 404
                 var status=404,body=http.STATUS_CODES[status];
                 serve({
                         status:status,
@@ -57,7 +60,39 @@ var server = http.createServer(function(req,res){
         }
 });
 
-cp.fork("./serve.js");
+// SUGGESTION: Instead of killing the processes... nah, nvm
+var subprocess=(function(){
+        var queue=[];
+
+        return {
+                fill:function(){
+                        queue.push(cp.fork("./serve.js"));
+
+                        var l=queue.length;
+                        console.mass("Filling subprocess queue... (%s->%s)...",l-1,l);
+                },
+                serve:function(req,res,serve){
+                        var sp=queue.shift();
+
+                        function strip(request){
+                                // What data do we need on the other side?
+                                return {
+                                        url:url
+                                };
+                        }
+
+                        sp.on("message",function(data){
+                                serve(JSON.parse(data));
+                        });
+
+                        sp.send(strip(req));
+
+                        this.fill(); // fill my place when we're done
+                }
+        };
+})();
+
+for (var g=0;g<2;g++) subprocess.fill();
 
 // DEVELOPMENT! From async back to sync!
 // Guess why? Because we're loading things.
@@ -65,7 +100,7 @@ cp.fork("./serve.js");
 // So it will be a lot easier and more efficient in terms of coding to just
 // load everything synchronously. We can then do async updates on the fly if we want to.
 
-for (var path of config.mimetypes_file_paths) mime.load(path);
+for (var path of config.mime.file_paths) mime.load(path);
 
 file.loaddir(config.dynamic_dir);
 
