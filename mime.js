@@ -2,6 +2,8 @@ const config=require("./conf.json");
 
 const pm=require("path"),fs=require("fs");
 
+const JSONRegExp=require("./JSONRegExp.js");
+
 function extension(path){
         return "."+pm.basename(path).replace(/.*\./,"");
 }
@@ -20,15 +22,14 @@ const parse=function(data){
         return {types:types,exts:exts};
 };
 
-// TODO: Paths doesn't remember the order we put everything in. Change this to a better solution
-var paths={};
+var paths=config.mime.file_paths;
 
 module.exports=(function init(){
         console.info("Mime.js initializing...");
 
         return {
                 update:function(){
-                        for (g in paths) this.load(g);
+                        for (g of paths) this.load(g);
                         console.info("Mime types have been updated!");
                 },
                 load:function(path){
@@ -52,12 +53,8 @@ module.exports=(function init(){
                 types:{},
                 exts:{},
                 match:function(mime,search){
-                        search=this.split(search);
-                        mime=this.split(mime);
-
-                        if (mime[0]==search[0]||search[0]=="*")
-                                if (mime[1]==search[1]||search[1]=="*") return true;
-                        return false;
+                        var r=new JSONRegExp(search);
+                        return r.test(mime);
                 },
                 get:function(path){
                         return this.exts[extension(path)]||config.mime.default;

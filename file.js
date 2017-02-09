@@ -6,6 +6,23 @@ console.info("File.js initializing...");
 // XXX Currently it's just the pricy update.
 // TODO: Remove external file npm dependency
 
+function direach(dirpath,callback){
+        dirpath=pm.normalize(dirpath);
+        console.debug("Loading directory recursively (%s)",dirpath);
+        file.walkSync(dirpath,function(dp,dirs,files){
+                for (var file of files){
+                        let filepath=pm.join(dp,file),filename=pm.basename(file);
+
+                        // Ignore hidden files
+                        if (filename[0]=="."){
+                                console.warn("Ignoring hidden file %s",filepath);
+                        }else{
+                                callback(filepath.replace(dirpath,""));
+                        }
+                }
+        });
+}
+
 function load(oldpath){
         var path="/"+pm.relative(config.dynamic_dir,oldpath);
 
@@ -53,48 +70,94 @@ function load(oldpath){
         }
 }
 
-var exports=module.exports={
-        cache:{},
-        nodes:{},
-        dirpaths:{},
-        filepaths:{},
-        update:function(){
-                console.info("Updating the file cache...");
-                for (let g in this.dirpaths) this.loaddir(g);
-                for (let g in this.filepaths) this.loadfile(g);
-                console.info("The file cache has been updated!");
-        },
-        loadfile:function(filepath){
-                console.info("Loading file (%s)",filepath);
-                this.filepaths[filepath]=true;
+var static=(function(){
+        return {
+                dir:config.static_dir,
+                update:function(){
+                        var dirpath=this.dir;
+                        console.log("Loading static files from (%s)...",dirpath);
 
-                load(filepath);
-        },
-        loaddir:function(dirpath){
-                console.info("Loading serve directory recursively (%s)",dirpath);
-                this.dirpaths[dirpath]=true;
+                        var cache={};
 
-                var self=this;
-                var e=file.walkSync(dirpath,function(dirpath,dirs,files){
-                        for (var file of files){
-                                let filepath=pm.join(dirpath,file);
+                        direach(dirpath,function(filepath){
+                                var mimetype=mime.get(filepath),realpath=dirpath+filepath;
 
-                                let filename=pm.basename(filepath);
-                                // Ignore some specifics
-                                if (filename[0]=="."){
-                                        console.warn("Cache ignoring hidden file %s",filepath);
-                                }else if (filename[filename.length-1]=="!"){
-                                        console.warn("Cache ignoring template file %s",filepath);
-                                }else{
-                                        try{
-                                                load(filepath);
-                                        }
-                                        catch(err){
-                                                console.error("Cannot cache file %s: %s",filepath,err);
-                                        }
+                                if (!mime.match(mimetype,config.mime.cache_types)){
+                                        console.mass("Skipping %s (mime mismatch (%s doesn't match regex %s))",realpath,mimetype,config.mime.cache_types);
+                                        return;
                                 }
 
+                                try{
+                                        var data=fs.readFileSync(realpath,"utf-8");
+                                        cache[filepath]={
+                                                status:200,
+                                                body:data,
+                                                headers:{
+                                                        "Content-Type":mimetype,
+                                                        "Content-Length":Buffer.byteLength(data)
+                                                }
+                                        };
+                                }
+                                catch(err){
+                                        console.warn("Cannot load static file: %s!",realpath);
+                                }
+                        });
+                }
+        };
+})();
+
+var dynamic=(function(){
+        return {
+                dir:config.dynamic_dir,
+                update:function(){
+                        var dirpath=this.dir;
+                        console.log("Loading dynamic files from (%s)...",dirpath);
+                        direach(dirpath,function(filepath){
+
+                        });
+                }
+        };
+})();
+
+var template=(function(){
+        function template(data){
+                // TODO: cleanup
+                return data.toString().replace(/<~<([\s\S]*?)>~>/g,function(_,_1){
+                        try{
+                                return Function(_1)()||"";
+                        }
+                        catch(err){
+                                console.error("Cannot parse templating script!");
+                                console.mass("Error near: %s",_1);
+                                throw new Error("Templating error");
                         }
                 });
+        }
+
+        return {
+                dir:config.template_dir,
+                update:function(){
+                        var dirpath=this.dir;
+                        console.log("Loading template files from (%s)...",dirpath);
+                        direach(dirpath,function(filepath){
+
+                        });
+                }
+        };
+})();
+
+var exports=module.exports={
+        cache:{},
+        static:static,
+        dynamic:dynamic,
+        template:template,
+        update:function(){
+                console.info("Updating the file cache...");
+                var cache={};
+                extend(cache,this.static.update());
+                extend(cache,this.dynamic.update());
+                extend(cache,this.template.update());
+                this.cache=cache;
+                console.info("The file cache has been updated!");
         }
 };

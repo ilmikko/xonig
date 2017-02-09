@@ -1,12 +1,11 @@
 {
         "port":2222,
-        "static_dir":"/srv/http",
-        "dynamic_dir":"./serve",
-        "template_dir":"./serve",
+        "static_dir":"./static",
+        "dynamic_dir":"./dynamic",
+        "template_dir":"./template",
         "mime":{
                 "file_paths":["./mime.types","/etc/nginx/mime.types"],
                 "default":"application/octet-stream",
-                "cache_types":["text/*"],
-                "serve_types":["text/node"]
+                "cache_types":"/text\/.*/"
         }
 }

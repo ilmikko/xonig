@@ -1,8 +1,10 @@
 types {
+        text/template           template;
+        text/node               node;
+
         text/html               html htm shtml;
         text/css                css;
         application/javascript  js;
-        text/node               node;
         image/gif               gif;
         image/jpeg              jpeg jpg;
         image/png               png;

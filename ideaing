@@ -19,4 +19,9 @@ if request in templatecache -> serve templatecache
 if request in physicalcache -> serve physicalcache
 else 404
 
-Can there be a single cache.update()? I don't think so.
+Can there be a single cache.update()? I don't think so. Maybe.
+
+REQUEST
+        Lightning cache -> contains the whole response (object) regardless of client
+        Node cache -> contains the script (FUNCTION?) to run on client request
+        Physical cache -> contains the response (object) without the data (read, or 'streamed', from the disk, by a separate process!) to translate to a response

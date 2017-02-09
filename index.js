@@ -9,8 +9,6 @@ global.extend=function(a,b){for (var g in b) a[g]=b[g];return b;};
 
 global.config=require("./conf.json");
 
-global.template=require("./template.js");
-
 global.mime=require("./mime.js");
 global.file=require("./file.js");
 
@@ -44,10 +42,7 @@ var server = http.createServer(function(req,res){
         // TODO: Serving content
         if (filepath in file.cache){
                 // Lightning serving
-                serve(file.cache[filepath]);
-        }else if (filepath in file.nodes){
-                // Node serving
-                subprocess.serve(req,res,serve);
+                file.cache[filepath].serve(req,res,serve);
         }else{
                 // Fallback to 404
                 var status=404,body=http.STATUS_CODES[status];
@@ -102,11 +97,8 @@ for (var g=0;g<2;g++) subprocess.fill();
 // So it will be a lot easier and more efficient in terms of coding to just
 // load everything synchronously. We can then do async updates on the fly if we want to.
 
-for (var path of config.mime.file_paths) mime.load(path);
-
-file.loaddir(config.dynamic_dir);
-
-template.loaddir(config.template_dir);
+mime.update();
+file.update();
 
 console.info("Server initialized!");
 server.listen(config.port,function(){
