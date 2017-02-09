@@ -9,6 +9,8 @@ global.extend=function(a,b){for (var g in b) a[g]=b[g];return b;};
 
 global.config=require("./conf.json");
 
+global.template=require("./template.js");
+
 global.mime=require("./mime.js");
 global.file=require("./file.js");
 
@@ -103,6 +105,8 @@ for (var g=0;g<2;g++) subprocess.fill();
 for (var path of config.mime.file_paths) mime.load(path);
 
 file.loaddir(config.dynamic_dir);
+
+template.loaddir(config.template_dir);
 
 console.info("Server initialized!");
 server.listen(config.port,function(){
