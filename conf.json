@@ -1,11 +1,13 @@
 {
         "port":2222,
-        "static_dir":"./static",
-        "dynamic_dir":"./dynamic",
-        "template_dir":"./template",
         "mime":{
                 "file_paths":["./mime.types","/etc/nginx/mime.types"],
-                "default":"application/octet-stream",
-                "cache_types":"/text\/.*/"
-        }
+                "default":"application/octet-stream"
+        },
+        "pools":[
+                {"id":"template","match":"text/template","dir":"./template"},
+                {"id":"dynamic","match":"text/node","dir":"./dynamic"},
+                {"id":"static","match":"text/.*","dir":"./static"},
+                {"id":"physical","match":".*","dir":"./physical"}
+        ]
 }

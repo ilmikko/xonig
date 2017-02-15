@@ -1,0 +1,7 @@
+[
+        {
+                "id":"static",
+                "require":"./pool/static.js",
+                "match":"text/.*"
+        }
+]

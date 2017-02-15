@@ -1,16 +1,16 @@
 "use strict";
-require("./console.js");
+require("./js/console.js");
 
 console.time("Server up in");
 
 const http=require("http"),pm=require("path"),cp=require("child_process");
 
-global.extend=function(a,b){for (var g in b) a[g]=b[g];return b;};
+global.extend=function(a,b){for (var g in b) a[g]=b[g];return a;};
 
 global.config=require("./conf.json");
 
-global.mime=require("./mime.js");
-global.file=require("./file.js");
+global.mime=require("./js/mime.js");
+global.file=require("./js/file.js");
 
 // TODO:
 // XXX (STILL A TODO, ALBEIT IT'S SOMEWHAT FINISHED RIGHT NOW) V
@@ -25,36 +25,18 @@ global.file=require("./file.js");
 // 7. MongoDB
 // 8. CAS. The bloody CAS.
 
+var pools = config.pools;
+
 var server = http.createServer(function(req,res){
         console.debug("Incoming request");
-        // 1. Parse the request path
-        // 2. Serve the file in RAM (don't serve ANYTHING else (:security:))
+        var path=pm.normalize(req.url);
 
-        function serve(o){
+        // Loop through pools, see if the path matches
+        pool.serve(path,function final(o){
                 res.writeHead(o.status,o.headers);
                 res.end(o.body);
-                console.log("%s request %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,status);
-        }
-
-        var filepath=pm.normalize(req.url);
-
-        // TODO: Dynamic content
-        // TODO: Serving content
-        if (filepath in file.cache){
-                // Lightning serving
-                file.cache[filepath].serve(req,res,serve);
-        }else{
-                // Fallback to 404
-                var status=404,body=http.STATUS_CODES[status];
-                serve({
-                        status:status,
-                        body:body,
-                        headers:{
-                                "Content-Type":"text/plain",
-                                "Content-Length":Buffer.byteLength(body)
-                        }
-                });
-        }
+                console.log("%s request %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,o.status);
+        });
 });
 
 // SUGGESTION: Instead of killing the processes... nah, nvm
@@ -63,7 +45,7 @@ var subprocess=(function(){
 
         return {
                 fill:function(){
-                        queue.push(cp.fork("./serve.js"));
+                        queue.push(cp.fork("./js/serve.js"));
 
                         var l=queue.length;
                         console.mass("Filling subprocess queue... (%s->%s)...",l-1,l);
