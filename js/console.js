@@ -29,8 +29,8 @@ var colors={
 var format={
         info:colors.green+"Info: %s"+colors.default,
         debug:colors.blue+"%s"+colors.default,
-        error:colors.red+"ERROR: %s"+colors.default,
-        warn:colors.yellow+"Warn! %s"+colors.default,
+        error:colors.red+"!ERROR: %s"+colors.default,
+        warn:colors.yellow+"!Warn: %s"+colors.default,
         back:colors.magenta+"> %s"+colors.default,
         massback:colors.darkgray+"~ %s"+colors.default,
         mass:colors.gray+"%s"+colors.default,

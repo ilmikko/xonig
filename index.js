@@ -12,6 +12,8 @@ global.config=require("./conf.json");
 global.mime=require("./js/mime.js");
 global.file=require("./js/file.js");
 
+global.pool=require("./js/pool.js");
+
 // TODO:
 // XXX (STILL A TODO, ALBEIT IT'S SOMEWHAT FINISHED RIGHT NOW) V
 // XXX ^ 11. Console!!! So that we don't need to restart the server, ever! Also, get dem stats.
@@ -25,14 +27,12 @@ global.file=require("./js/file.js");
 // 7. MongoDB
 // 8. CAS. The bloody CAS.
 
-var pools = config.pools;
-
-var server = http.createServer(function(req,res){
+global.server = http.createServer(function(req,res){
         console.debug("Incoming request");
         var path=pm.normalize(req.url);
 
         // Loop through pools, see if the path matches
-        pool.serve(path,function final(o){
+        pool.serve({req:req,res:res,path:path},function final(o){
                 res.writeHead(o.status,o.headers);
                 res.end(o.body);
                 console.log("%s request %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,o.status);
@@ -40,7 +40,7 @@ var server = http.createServer(function(req,res){
 });
 
 // SUGGESTION: Instead of killing the processes... nah, nvm
-var subprocess=(function(){
+global.subprocess=(function(){
         var queue=[];
 
         return {
@@ -80,6 +80,7 @@ for (var g=0;g<2;g++) subprocess.fill();
 // load everything synchronously. We can then do async updates on the fly if we want to.
 
 mime.update();
+pool.update();
 file.update();
 
 console.info("Server initialized!");

@@ -6,26 +6,8 @@ console.info("File.js initializing...");
 // XXX Currently it's just the pricy update.
 // TODO: Remove external file npm dependency
 
-function direach(dirpath,callback){
-        console.debug("Loading directory recursively (%s)",dirpath);
-        try{
-        dirpath=pm.normalize(dirpath);
-		file.walkSync(dirpath,function(dp,dirs,files){
-			for (var file of files){
-				let filepath=pm.join(dp,file),filename=pm.basename(file);
+function dirmatch(dirpath,mimetype,callback){
 
-				// Ignore hidden files
-				if (filename[0]=="."){
-					console.warn("Ignoring hidden file %s",filepath);
-				}else{
-					callback(filepath.replace(dirpath,""));
-				}
-			}
-		});
-	}
-	catch(err){
-		console.error("Cannot load directory! %s",err);
-	}
 }
 
 
@@ -46,14 +28,7 @@ var static=(function(){
                                 if (cachetype=="static"){
                                         try{
                                                 var data=fs.readFileSync(realpath,"utf-8");
-                                                cache[filepath]={
-                                                        status:200,
-                                                        body:data,
-                                                        headers:{
-                                                                "Content-Type":mimetype,
-                                                                "Content-Length":Buffer.byteLength(data)
-                                                        }
-                                                };
+                                                cache[filepath]=todo;
                                         }
                                         catch(err){
                                                 console.warn("Cannot load file to cache: %s!",err);
@@ -176,16 +151,56 @@ var template=(function(){
 
 
 var exports=module.exports={
-        static:static,
-        dynamic:dynamic,
-        physical:physical,
-        template:template,
         update:function(){
                 console.info("Updating the file cache...");
-                var pools=config.pools;
-                for (let pool of pools){
-                        console.mass("File cache: pool #%s",pool.id);
-                        
+                for (let p of pool.pools){
+                        var id=p.id,dir=p.dir||config.default.dir,matchmime=p.match||config.default.match;
+                        console.debug("Pool #%s: dir %s, mime %s",id,dir,matchmime);
+
+                        var po=p.stuff;
+
+                        // TODO: CLEAN UP
+                        console.debug("Loading directory recursively (%s)",dir);
+                        try{
+                                dir=pm.normalize(dir);
+                		file.walkSync(dir,function(dirpath,dirs,files){
+                			for (var file of files){
+                                                let filepath=pm.join(dirpath,file),filename=pm.basename(file),mimetype=mime.get(filepath);
+
+                                                console.mass("Parsing file (%s)...",filepath);
+
+                				// Ignore hidden files
+                				if (filename[0]=="."){
+                					console.warn("Ignoring hidden file %s",filepath);
+                				}else{
+                                                        if (mime.match(mimetype,matchmime)){
+                                                                let path=filepath.replace(dir,"");
+
+                                                                var poolobj={status:200,headers:{},body:""};
+
+                                                                if (po.mime) po.mime.call(poolobj,mimetype);
+
+                                                                if (po.data){
+                                                                        try{
+                                                                                let data=fs.readFileSync(filepath);
+                                                                                po.data.call(poolobj,data);
+                                                                        }
+                                                                        catch(err){
+                                                                                console.error("Cannot open file! %s",err);
+                                                                        }
+                                                                }
+
+                                                                pool.cache[path]=poolobj;
+                                                        }else{
+                                                                console.warn("Ignoring file %s, mime mismatch (%s not in %s)",filepath,mimetype,matchmime);
+                                                        }
+                				}
+                			}
+                		});
+                	}
+                	catch(err){
+                		console.error("Cannot load directory! %s",err);
+                	}
                 }
                 console.info("The file cache has been updated!");
         }

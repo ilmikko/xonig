@@ -1,7 +1,7 @@
 function JSONRegExp(string){
         // syntax: /expr/flags
         var expr,flags,valid=false;
-        string.replace(/^\/?(.*)\/([ginmy]*)$/,function(_,_1,_2){
+        string.replace(/^\/?(.*)(\/([ginmy]*))?$/,function(_,_1,_2){
                 valid=true;
                 expr=_1;
                 flags=_2;
@@ -12,7 +12,7 @@ function JSONRegExp(string){
         // there are some 'custom flags', like n, which negates the true and false.
         var negate=false;
 
-        if (flags.indexOf("n")>-1){
+        if (flags&&flags.indexOf("n")>-1){
                 negate=true;
                 flags=flags.replace("n","");
         }
