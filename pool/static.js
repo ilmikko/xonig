@@ -1,5 +1,4 @@
-// module exports cache
-module.exports={
+return {
         data:function(data){
                 this.body=data;
                 this.headers["Content-Length"]=Buffer.byteLength(data);

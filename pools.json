@@ -3,5 +3,11 @@
                 "id":"static",
                 "require":"./pool/static.js",
                 "match":"text/.*"
+        },
+        {
+                "id":"dynamic",
+                "require":"./pool/dynamic.js",
+                "match":"text/node",
+                "dir":"dynamic"
         }
 ]

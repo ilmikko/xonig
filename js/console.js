@@ -52,5 +52,13 @@ console = new Proxy({
         }
 });
 
+console.command = new Proxy({},{
+        get:function(target,key){
+                if (key in target) return target[key]; else {
+                        return function(){};
+                }
+        }
+});
+
 // Optional modules; you can remove these and still keep the functionality
 const cmd=require("./console-cmd.js");

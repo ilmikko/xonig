@@ -151,56 +151,51 @@ var template=(function(){
 
 
 var exports=module.exports={
-        update:function(){
-                console.info("Updating the file cache...");
-                for (let p of pool.pools){
-                        var id=p.id,dir=p.dir||config.default.dir,matchmime=p.match||config.default.match;
-                        console.debug("Pool #%s: dir %s, mime %s",id,dir,matchmime);
+        js:function(path){
+                try{
+                        var data=fs.readFileSync(path);
+                }
+                catch(err){
+                        console.error("Cannot read file! %s",err);
+                }
+                try{
+                        return Function(data)();
+                }
+                catch(err){
+                        console.error("Error in js file: %s",err);
+                }
+        },
+        dir:function(o){
+                let dir=o.path,matchmime=o.match||".*",callback=o.callback||function(){};
+                console.debug("Loading directory recursively (%s)",dir);
+                try{
+                        dir=pm.normalize(dir);
+                        file.walkSync(dir,function(dirpath,dirs,files){
+                                for (let file of files){
+                                        let filepath=pm.join(dirpath,file),filename=pm.basename(file),mimetype=mime.get(filepath);
 
-                        var po=p.stuff;
+                                        console.mass("Parsing file (%s)...",filepath);
 
-                        // TODO: CLEAN UP
-                        console.debug("Loading directory recursively (%s)",dir);
-                        try{
-                                dir=pm.normalize(dir);
-                		file.walkSync(dir,function(dirpath,dirs,files){
-                			for (var file of files){
-                                                let filepath=pm.join(dirpath,file),filename=pm.basename(file),mimetype=mime.get(filepath);
-
-                                                console.mass("Parsing file (%s)...",filepath);
-
-                				// Ignore hidden files
-                				if (filename[0]=="."){
-                					console.warn("Ignoring hidden file %s",filepath);
-                				}else{
-                                                        if (mime.match(mimetype,matchmime)){
-                                                                let path=filepath.replace(dir,"");
-
-                                                                var poolobj={status:200,headers:{},body:""};
-
-                                                                if (po.mime) po.mime.call(poolobj,mimetype);
-
-                                                                if (po.data){
-                                                                        try{
-                                                                                let data=fs.readFileSync(filepath);
-                                                                                po.data.call(poolobj,data);
-                                                                        }
-                                                                        catch(err){
-                                                                                console.error("Cannot open file! %s",err);
-                                                                        }
-                                                                }
-
-                                                                pool.cache[path]=poolobj;
-                                                        }else{
-                                                                console.warn("Ignoring file %s, mime mismatch (%s not in %s)",filepath,mimetype,matchmime);
-                                                        }
-                				}
-                			}
-                		});
-                	}
-                	catch(err){
-                		console.error("Cannot load directory! %s",err);
-                	}
+                                        // Ignore hidden files
+                                        if (filename[0]=="."){
+                                                console.warn("Ignoring hidden file %s",filepath);
+                                        }else{
+                                                if (mime.match(mimetype,matchmime)){
+                                                        callback({
+                                                                path:filepath,
+                                                                name:filename,
+                                                                index:filepath.replace(dir,""),
+                                                                mime:mimetype
+                                                        });
+                                                }else{
+                                                        console.warn("Ignoring file %s, mime mismatch (%s not in %s)",filepath,mimetype,matchmime);
+                                                }
+                                        }
+                                }
+                        });
+                }
+                catch(err){
+                        console.error("Cannot load directory! %s",err);
                 }
                 console.info("The file cache has been updated!");
         }

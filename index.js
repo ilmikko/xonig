@@ -81,7 +81,7 @@ for (var g=0;g<2;g++) subprocess.fill();
 
 mime.update();
 pool.update();
-file.update();
+//file.update();
 
 console.info("Server initialized!");
 server.listen(config.port,function(){
@@ -91,4 +91,34 @@ server.listen(config.port,function(){
 
 process.on("exit",function(){
         console.log("Bye!");
+});
+
+console.command.add("request",function(path){
+        var port=config.port;
+        path="/"+path;
+        console.debug("Request: %s (port %s)",path,port);
+        var req=http.request({
+                path:path,
+                port:port,
+                hostname:"localhost",
+                method:"GET"
+        },function(res){
+                console.debug("Response: %s",res.statusCode);
+                var data="";
+                res.on("data",function(d){
+                        data+=d;
+                });
+                res.on("end",function(){
+                        console.back(data);
+                });
+                res.on("error",function(err){
+                        console.error("Response error: %s",err);
+                });
+        });
+        req.on("error",function(err){
+                console.error("Request error: %s",err);
+        });
+        req.end();
+},{
+        help:"Make a request to the server\nUsage: request [path]\nThis command makes a request to the server 'itself', and then prints out what the server responds."
 });
