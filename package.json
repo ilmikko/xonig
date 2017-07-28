@@ -1,13 +1,10 @@
 {
-  "name": "nodeginxer",
-  "version": "1.0.0",
+  "name": "Xonig",
+  "version": "1.1.0",
   "description": "Node.js php replacer for nginx with some additional functionality",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "ilmikko",
-  "license": "UNLICENSED",
+  "license": "GPLv2",
   "dependencies": {
     "file": "^0.2.2"
   }

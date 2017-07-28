@@ -30,7 +30,7 @@ module.exports={
         },
         updateconfigs:function(){
                 console.info("Updating pool configs...");
-                pools=[];
+                pools=[];statics={};dynamics={};
                 for (let path of configpaths) this.loadconfig(path);
                 console.info("Pool configs have been updated!");
         },
@@ -44,8 +44,10 @@ module.exports={
                                 callback:function(file){
                                         var serve={status:200,body:"",headers:{}}; // default serve object that can be expanded upon
 
+                                        // If the pool has a mime handler, show the file mime to the pool
                                         if (pool.mime) pool.mime.call(serve,file.mime);
 
+                                        // If the pool has a data handler, show the file data to the pool
                                         if (pool.data){
                                                 try{
                                                         let data=fs.readFileSync(file.path);
@@ -56,6 +58,7 @@ module.exports={
                                                 }
                                         }
 
+                                        // If the pool is dynamic, put into dynamics. Otherwise put into statics
                                         if (pool.dynamic){
                                                 dynamics[file.index]=pool.dynamic(serve);
                                         }else{
@@ -72,7 +75,7 @@ module.exports={
                 if (path in statics){
                         callback(statics[path]);
                 }else if (path in dynamics){
-                        callback(dynamics[path]());
+                        callback(dynamics[path](o));
                 }else{
                         // 404
                         callback({

@@ -10,8 +10,6 @@ function dirmatch(dirpath,mimetype,callback){
 
 }
 
-
-
 var static=(function(){
         return {
                 dir:config.static_dir,
@@ -151,18 +149,29 @@ var template=(function(){
 
 
 var exports=module.exports={
+        get:function(path){
+                try{
+                        return fs.readFileSync(path);
+                }
+                catch(err){
+                        console.error("Cannot read file! %s",err);
+                        throw err;
+                }
+        },
         js:function(path){
                 try{
                         var data=fs.readFileSync(path);
                 }
                 catch(err){
                         console.error("Cannot read file! %s",err);
+                        throw err;
                 }
                 try{
                         return Function(data)();
                 }
                 catch(err){
                         console.error("Error in js file: %s",err);
+                        throw err;
                 }
         },
         dir:function(o){
@@ -196,6 +205,7 @@ var exports=module.exports={
                 }
                 catch(err){
                         console.error("Cannot load directory! %s",err);
+                        throw err;
                 }
                 console.info("The file cache has been updated!");
         }

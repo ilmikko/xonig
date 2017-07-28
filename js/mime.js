@@ -27,7 +27,7 @@ var paths=config.mime.file_paths;
 module.exports={
         update:function(){
                 console.info("Updating mime types...");
-                for (g of paths) this.load(g);
+                for (var g of paths) this.load(g);
                 console.info("Mime types have been updated!");
         },
         load:function(path){

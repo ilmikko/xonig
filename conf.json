@@ -1,5 +1,6 @@
 {
         "port":2222,
+        "max_processes":5,
         "mime":{
                 "file_paths":["./mime.types","/etc/nginx/mime.types"],
                 "default":"application/octet-stream"
@@ -7,5 +8,12 @@
         "default":{
                 "dir":"./serve",
                 "match":"text/.*"
+        },
+        "tls":{
+                "enabled":false,
+                "port":2233,
+                "key":"./key.pem",
+                "cert":"./cert.pem",
+                "pass":"testing"
         }
 }
