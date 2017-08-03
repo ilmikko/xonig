@@ -19,7 +19,7 @@ module.exports={
                         var arr=JSON.parse(fs.readFileSync(path));
                         for (let pool of arr){
                                 if (pool.require) extend(pool,file.js(pool.require));
-                                console.debug("Pushing %s",JSON.stringify(pool));
+                                console.debug("New pool: %s",JSON.stringify(pool));
                                 pools.push(pool);
                         }
                         console.debug("Pools length: %s",pools.length);
@@ -29,20 +29,20 @@ module.exports={
                 }
         },
         updateconfigs:function(){
-                console.info("Updating pool configs...");
+                console.debug("Updating pool configs...");
                 pools=[];statics={};dynamics={};
                 for (let path of configpaths) this.loadconfig(path);
-                console.info("Pool configs have been updated!");
+                console.info("Pool configs updated!");
         },
         updatepools:function(){
-                console.info("Updating file pools...");
+                console.debug("Updating file pools...");
                 for (let pool of pools){
                         console.debug("Pool #%s: dir %s, mime %s",pool.id,pool.dir,pool.match);
                         file.dir({
                                 match:pool.match||config.default.match,
                                 path:pool.dir||config.default.dir,
                                 callback:function(file){
-                                        var serve={status:200,body:"",headers:{}}; // default serve object that can be expanded upon
+                                        var serve=pool.default||{status:200,body:"",headers:{}}; // default serve object that can be expanded upon
 
                                         // If the pool has a mime handler, show the file mime to the pool
                                         if (pool.mime) pool.mime.call(serve,file.mime);

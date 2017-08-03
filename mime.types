@@ -1,6 +1,7 @@
 types {
         text/template           template;
         text/node               node;
+        text/node-html          htmn;
 
         text/html               html htm shtml;
         text/css                css;

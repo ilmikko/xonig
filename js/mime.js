@@ -1,6 +1,6 @@
 const pm=require("path"),fs=require("fs");
 
-console.info("Mime.js initializing...");
+console.debug("Mime.js initializing...");
 
 const JSONRegExp=require("./JSONRegExp.js");
 
@@ -11,7 +11,7 @@ function extension(path){
 const parse=function(data){
         var types={},exts={};
 
-        // Parses the default .types file that comes with at least nginx (TODO: Check for other syntaxes)
+        // Parses the default .types file format
         data.toString().replace(/types\s*{([\s\S]*)}/g,function(_,_1){
                 (_1||"").replace(/(\S+)\s+([^;]*?);/g,function(_,_1,_2){
                         _2=_2.split(/\s/);
@@ -19,6 +19,7 @@ const parse=function(data){
                         for (var g=0,glen=_2.length;g<glen;g++) exts["."+_2[g]]=_1;
                 });
         });
+
         return {types:types,exts:exts};
 };
 
@@ -26,18 +27,20 @@ var paths=config.mime.file_paths;
 
 module.exports={
         update:function(){
-                console.info("Updating mime types...");
+                console.debug("Updating mime types...");
                 for (var g of paths) this.load(g);
-                console.info("Mime types have been updated!");
+                console.info("Mime types updated!");
         },
         load:function(path){
-                console.log("Loading mime types from disk (%s)",path);
+                console.debug("Loading mime types from disk (%s)",path);
 
-                var data=fs.readFileSync(path,function(err){
-                        if (err){
-                                console.warn("Cannot load mime types from disk! "+err);
-                        }
-                });
+                var data;
+                try{
+                        data=fs.readFileSync(path);
+                }
+                catch(err){
+                        console.warn("Cannot load mime types from disk! "+err);
+                }
                 try{
                         data=parse(data);
                         extend(this.types,data.types);

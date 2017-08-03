@@ -1,6 +1,6 @@
 const readline=require("readline"),rl=readline.createInterface({input:process.stdin,output:process.stdout});
 
-console.info("Initializing console command module...");
+console.debug("Initializing console command module...");
 
 function parseParams(params){
         for (var g=0,glen=params.length;g<glen;g++) if (!isNaN(params[g])) params[g]=parseFloat(params[g]); else params[g]="\""+params[g].replace(/"/g,"")+"\"";
@@ -66,7 +66,7 @@ console.command={
         },
         add:function(name,func,datas){
                 var run=this.run,data=this.data;
-                console.info("Adding command '%s'...",name);
+                console.debug("Adding command '%s'...",name);
                 if (name in run) throw new Error("Cannot add command '"+name+"', it's already defined."); else {
                         run[name]=func;
 

@@ -9,11 +9,15 @@
                 "dir":"./serve",
                 "match":"text/.*"
         },
+        "proxy":{
+                "enabled":true,
+                "header":"x-forwarded-for"
+        },
         "tls":{
                 "enabled":false,
                 "port":2233,
                 "key":"./key.pem",
                 "cert":"./cert.pem",
-                "pass":"testing"
+                "pass":"passphrase"
         }
 }

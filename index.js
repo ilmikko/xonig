@@ -3,10 +3,13 @@ require('./js/console.js');
 
 console.time('Server up in');
 
-console.info('Loading modules...');
+console.debug('Starting in '+__dirname);
+process.chdir(__dirname);
+
+console.debug('Loading modules...');
 
 console.mass('Internal modules...');
-const http=require('http'),https=require('https'),pm=require('path'),cp=require('child_process');
+const http=require('http'),https=require('https'),cp=require('child_process');
 
 (function loadModules(){
         global.extend=function(a,b){for (var g in b) a[g]=b[g];return a;};
@@ -15,10 +18,10 @@ const http=require('http'),https=require('https'),pm=require('path'),cp=require(
         global.config=require("./conf.json");
 
         console.mass('Own modules...');
-        global.mime=require("./js/mime.js");
-        global.file=require("./js/file.js");
+        global.mime=require('./js/mime.js');
+        global.file=require('./js/file.js');
 
-        global.pool=require("./js/pool.js");
+        global.pool=require('./js/pool.js');
 
         global.subprocess=(function(){
                 var queue=[];
@@ -61,9 +64,10 @@ console.info('All modules loaded.');
 // Not strictly part of the server, but dynamic files should also include the CAS with Mongo / other DB auth
 
 (function(){
-        console.info("Filling processes (max: %s)...",config.max_processes);
-        for (var g=0;g<config.max_processes;g++) subprocess.fill();
-        console.info('Processes filled');
+        let max=config.max_processes;
+        console.debug("Filling processes (max: %s)...",max);
+        for (var g=0;g<max;g++) subprocess.fill();
+        console.info("Processes filled to max (%s)",max);
 })();
 
 // DEVELOPMENT! From async back to sync!
@@ -74,7 +78,7 @@ console.info('All modules loaded.');
 
 mime.update();
 pool.update();
-console.info("Server initialized!");
+console.info('Server initialized!');
 
 function parseQueryString(qs){
         var data={};
@@ -119,17 +123,27 @@ function parseRequest(req,res,success,error){
                 But I think we're fine using just $.data.
         */
 
+        req.on('error',function(err){
+                console.error('REQ '+err);
+        });
+        req.on('close',function(){
+                console.log('CONNECTION LOST');
+        });
+        req.on('end',function(){
+                console.log('CONNECTION FIN');
+        });
+        res.on('error',function(err){
+                console.error('RES '+err);
+        });
+
         var url=req.url; // TODO: normalize the URI
         var headers=req.headers;
 
-        console.info("HEADERS:");
-        console.info(JSON.stringify(headers));
-
+        // URI variables (sync)
         var data={};
         var si=url.indexOf('?')+1;
         var path=url;
         if (si){
-                // parse URI variables
                 path=url.slice(0,si-1);
                 data=parseQueryString(url.slice(si));
         }
@@ -137,17 +151,12 @@ function parseRequest(req,res,success,error){
         // HTTP Body variables (async)
         var body='';
 
-        req.on('error',function(err){
-                console.error("Request connection error %s",err);
-                error(err);
-        });
         req.on('data',function(data){
                 body+=data;
         });
         req.on('end',function(){
                 // Parse body
-                console.log('Body: '+body);
-                extend(data,parseQueryString(body));
+                if (body) extend(data,parseQueryString(body));
 
                 success({
                         req:req,
@@ -166,13 +175,11 @@ console.info('Launching server...');
                 // Parse request first
                 parseRequest(req,res,function success(o){
                         // Loop through pools, see if the path matches
-                        pool.serve(o,function final(o){
-                                res.writeHead(o.status,o.headers);
-                                res.end(o.body);
-                                console.log("%s request %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,o.status);
+                        pool.serve(o,function final(r){
+                                res.writeHead(r.status,r.headers);
+                                res.end(r.body);
+                                console.info("%s: %s request served. (%s)",r.ip,req.method,req.url,r.status);
                         });
-                },function error(){
-                        console.error('Did not serve request');
                 });
 
         }).listen(config.port,function(){
@@ -184,22 +191,24 @@ console.info('Launching server...');
 
 // XXX: SSL/TLS
 if (config.tls.enabled) {
-        console.info("Launching SSL/TLS server...");
+        console.debug('Launching SSL/TLS server...');
         (function launchTLSServer(){
-                console.info("Initializing SSL/TLS server...");
+                console.debug('Initializing SSL/TLS server...');
                 global.server_tls = https.createServer({
                         key: file.get(config.tls.key),
                         cert: file.get(config.tls.cert),
                         passphrase: config.tls.pass || null
                 },function(req,res){
-                        console.debug("Incoming request (SSL/TLS)");
-                        var path=pm.normalize(req.url);
+                        console.debug('Incoming request (SSL/TLS)');
 
-                        // Loop through pools, see if the path matches
-                        pool.serve({req:req,res:res,path:path},function final(o){
-                                res.writeHead(o.status,o.headers);
-                                res.end(o.body);
-                                console.log("%s request (SSL/TLS) %s from %s served. (%s)",req.method,req.url,req.connection.remoteAddress,o.status);
+                        // Parse request
+                        parseRequest(req,res,function success(o){
+                                // Loop through pools, see if the path matches
+                                pool.serve(o,function final(r){
+                                        res.writeHead(r.status,r.headers);
+                                        res.end(r.body);
+                                        console.info("%s: %s request (SSL/TLS) served. (%s)",r.ip,req.method,req.url,r.status);
+                                });
                         });
                 }).listen(config.tls.port,function(){
                         console.info("Server (SSL/TLS) now listening on port %s",config.tls.port);
@@ -207,9 +216,9 @@ if (config.tls.enabled) {
         })();
 }
 
-process.on("exit",function(){
+process.on('exit',function(){
         // XXX: Things to do when exiting
-        console.log("Bye!");
+        console.log('Bye!');
 });
 
 // DEBUG: Console command 'request'
@@ -222,23 +231,23 @@ console.command.add('request',function(path){
         var req=http.request({
                 path:path,
                 port:config.port,
-                hostname:"localhost",
-                method:"GET"
+                hostname:'localhost',
+                method:'GET'
         },function(res){
                 console.debug("Response: %s",res.statusCode);
                 console.log("Headers: %s",JSON.stringify(res.headers));
-                var data="";
-                res.on("data",function(d){
-                        data+=d;
+                var data='';
+                res.on('data',function(chunk){
+                        data+=chunk;
                 });
-                res.on("end",function(){
+                res.on('end',function(){
                         console.back(data);
                 });
-                res.on("error",function(err){
+                res.on('error',function(err){
                         console.error("Response error: %s",err);
                 });
         });
-        req.on("error",function(err){
+        req.on('error',function(err){
                 console.error("Request error: %s",err);
         });
         req.end();

@@ -1,60 +1,82 @@
 return {
         dynamic:function(serve){
                 return function(o){
+                        var ip;
+
+                        if (config.proxy.enabled)
+                                ip=o.req.headers[config.proxy.header];
+                        else
+                                ip=o.req.connection.remoteAddress;
+
                         // Construct the $ object (yes, every time.)
                         var $={
                                 response:o.res,
                                 request:o.req,
                                 path:o.path,
-                                ip:o.res.connection.remoteAddress,
+                                ip:ip,
                                 method:o.req.method,
                                 secure:(o.req.connection.encrypted==true),
-                                data:o.data
+                                data:o.data,
+                                status:200,
+                                body:'',
+                                header:{
+                                        'content-type':'text/html; charset=utf-8'
+                                }
                         };
 
-                        /*
-                                $.ip or $['ip']
-                                $.path - the requested path
-                                $.ip - the remote IP address
-                                $.secure - if the socket is encrypted
-                        */
-                        try{
-                                var ret=serve.onrequest($);
-                        }
-                        catch(err){
-                                console.warn("Error in script %s: %s",o.path,err);
-                                return {
-                                        status:500,
-                                        body:"Internal squeever error"
-                                };
-                        }
+                        // Start parsing the chunks (and scripts)
+                        for (let chunk of serve.chunks){
+                                if (typeof chunk === 'function'){
+                                        // Run script and append to body
+                                        try{
+                                                $.body+=chunk($)||"";
+                                        }
+                                        catch(err){
+                                                console.warn("Error parsing script block: %s",err);
 
-                        if (ret){
-                                if (typeof ret==="string"){
-                                        ret = {body:ret};
-                                }else if (typeof ret!=="object"){
-                                        console.error("Dynamic script returned garbage!");
-                                        return {
-                                                status:500,
-                                                body:"Internal squeever error"
-                                        };
+                                                $.status=500;
+                                                $.body='Internal Squeever Error';
+                                                break;
+                                        }
+                                }else{
+                                        // Append to body immediately
+                                        $.body+=chunk;
                                 }
-
-                                extend(serve,ret);
                         }
 
-                        return serve;
+                        // Calculate content-length
+                        if (!('content-length' in $.header))
+                                $.header['content-length']=Buffer.byteLength($.body,'utf-8');
+
+                        return extend(serve,$);
                 }
         },
         data:function(data){
-                try{
-                        this.onrequest=Function("$",data);
-                }
-                catch(err){
-                        console.error("Cannot parse dynamic: %s",err);
-                }
-        },
-        mime:function(mime){
-                this.headers["Content-Type"]="text/html"; // usually, overrided in scripts if needed
+                console.debug('Parsing dynamic data into scripts...');
+                this.chunks=[];
+
+                data=data.toString();
+
+                var self=this;
+
+                while(data) data=data.replace(/^([\s\S]*?)(<%|%>|$)/,function(_,text,type){
+                        if (type=='%>'){
+                                // Parsing a script
+                                // Conveniences
+                                if (text[0]=='='){
+                                        text='return '+text.slice(1);
+                                }
+                                try{
+                                        self.chunks.push(Function('$',text));
+                                }
+                                catch(err){
+                                        console.error("Cannot parse chunk! %s",err);
+                                }
+                        }else{
+                                // Parsing plaintext
+                                self.chunks.push(text);
+                        }
+                        return '';
+                });
         }
 };

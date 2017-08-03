@@ -1,4 +1,6 @@
-var body="Hello "+($.data['name']||'World')+", you have sent "+$.method+" with data ['test']="+$.data['test'];
-body+="<br><form method='post'><input name=test></form>";
+<%
+        var body="Hello "+($.data['name']||'World')+", you have sent "+$.method+" with data ['test']="+$.data['test'];
+        body+="<br><form method='post'><input name=test></form>";
 
-return body;
+        return body;
+%>

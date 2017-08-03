@@ -1,11 +1,8 @@
 {
   "name": "Xonig",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Node.js php replacer for nginx with some additional functionality",
   "main": "index.js",
   "author": "ilmikko",
-  "license": "GPLv2",
-  "dependencies": {
-    "file": "^0.2.2"
-  }
+  "license": "GPLv2"
 }
