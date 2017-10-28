@@ -4,8 +4,6 @@ let port=27017,host='localhost';
 let url = 'mongodb://'+host+':'+port+'/';
 
 module.exports={
-        db:{},
-	dbInUse:null,
 	connect:function(dbpath){
 		return new Promise(function(fulfill, reject){
 			mongo.connect(url+dbpath,function(err,db){
@@ -17,25 +15,7 @@ module.exports={
 				}
 			});
 		});
-	},
-        use:function(dbpath){
-                console.log('Mongo connecting to %s...',dbpath);
-                var self=this;
-		return new Promise(function(fulfill, reject){
-			mongo.connect(url+dbpath,function(err,db){
-				if (err) {
-					reject(err);
-				} else {
-					console.log("Use DB: '%s'",dbpath);
-					fulfill(self.db[self.dbInUse=dbpath]=db);
-				}
-			});
-		});
-        },
-        get:function(col,db=this.dbInUse){
-                if (!(db in this.db)) throw new Error("DB '"+db+"' not in use."); else db=this.db[db];
-                if (col) return db.collection(col); else return db;
-        }
+	}
 };
 
 // Test connection, warn if it fails
