@@ -1,9 +1,29 @@
 <%=read('header.html')%>
-<% /*test*/ %>
-<%
-	ips=db.niceGet('test','ipcollection');
+<%!
+        db.use('test',function(db){
+                DONE();
+        });
 %>
-Your ip is <%=IP%>. You have logged in <%=ips[IP].times%> time(s).
+<%!
+        col=db.get('test','ipcollection')
+        col
+        .update({ip:IP},{$inc:{logins:1}},{upsert:true})
+        .then(function(thing){
+                col
+                .findOne({ip:IP})
+                .then(function($){
+                        times=$.logins;
+                        DONE();
+                })
+                .catch(function(err){
+                        DONE(err);
+                });
+        })
+        .catch(function(err){
+                DONE(err);
+        });
+%>
+Your ip is <%=IP%>. You have logged in <%=times%> time(s).
 <br>
 This script file is in <%=REALPATH%> as <%=PATH%>
 <br>
