@@ -25,7 +25,7 @@ module.exports={
                         console.debug("Pools length: %s",pools.length);
                 }
                 catch(err){
-                        console.error("Cannot load pool config: %s",err);
+                        throw new Error("Cannot load pool config: "+err);
                 }
         },
         updateconfigs:function(){
