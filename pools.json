@@ -2,12 +2,13 @@
         {
                 "id":"static",
                 "require":"./pool/static.js",
-                "match":"text/.*"
+                "match":"text/(html|plain)",
+		"dir":["/home/iveks/Desktop/Showcase"]
         },
         {
                 "id":"dynamic",
                 "require":"./pool/dynamic.js",
                 "match":"^text/node$",
-                "dir":["dynamic","fiveks"]
+                "dir":["dynamic","fiveks","/home/iveks/Desktop/Showcase"]
         }
 ]

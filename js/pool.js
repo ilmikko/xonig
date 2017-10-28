@@ -98,7 +98,7 @@ module.exports={
                 }
 
                 if (path in statics){
-                        callback(statics[path]);
+                        callback(extend({IP:o.IP},statics[path]));
                 }else if (path in dynamics){
                         dynamics[path](o,callback);
                 }else{

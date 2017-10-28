@@ -142,7 +142,14 @@ return {
                                 // Parsing a script
 
                                 // Conveniences
-                                if (text[0]=='=') text='body+'+text;
+				if (text[0]=='#') {
+					// this block is commented out
+					return '';
+				}
+                                if (text[0]=='=') {
+					// this block is a shorthand echo
+					text='body+'+text;
+				}
                                 if (text[0]=='!') {
                                         // async
                                         text='_async=true;'+text.slice(1);
