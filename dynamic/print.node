@@ -1,0 +1,6 @@
+<%
+        header['content-type']='text/plain';
+        print('This is a printed text');
+        print("\n");
+        print('Another line');
+%>

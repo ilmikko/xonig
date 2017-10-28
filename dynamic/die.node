@@ -1,0 +1,8 @@
+<%
+        // This is an example case of die()
+        // Sometimes die() is necessary
+
+        if (!DATA['securetest']) throw new Error("Page is not secure.");
+
+        print("Welcome to my secure page.");
+%>

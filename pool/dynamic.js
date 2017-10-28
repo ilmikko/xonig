@@ -1,54 +1,109 @@
 return {
+        path:function(path){
+                this.realpath=path;
+        },
         dynamic:function(serve){
-                return function(o){
-                        var ip;
-
-                        if (config.proxy.enabled)
-                                ip=o.req.headers[config.proxy.header];
-                        else
-                                ip=o.req.connection.remoteAddress;
-
-                        // Construct the $ object (yes, every time.)
-                        var $={
-                                response:o.res,
-                                request:o.req,
-                                path:o.path,
-                                ip:ip,
-                                method:o.req.method,
-                                secure:(o.req.connection.encrypted==true),
-                                data:o.data,
+                return function(o,callback){
+                        // Construct the context (yes, every time.)
+                        var context={
+                                _die:false,
+                                _async:false,
+                                RESPONSE:o.res,
+                                REQUEST:o.req,
+                                PATH:o.path,
+                                REALPATH:serve.realpath,
+                                IP:o.IP,
+                                METHOD:o.req.method,
+                                SECURE:(o.req.connection.encrypted===true),
+                                DATA:o.data,
+                                COOKIES:(function(ch){
+                                        return qs.parse(ch);
+                                })(o.req.headers.cookie),
+                                HEADERS:o.req.headers,
                                 status:200,
+                                fs:fs,
+                                db:db,
                                 body:'',
-                                header:{
-                                        'content-type':'text/html; charset=utf-8'
+                                read:function(fn){
+                                        return fs.readFileSync(pm.dirname(serve.realpath)+'/'+fn);
+                                },
+                                // NOTE: There is a difference between header and HEADERS
+                                // You can check if $.HEADERS['thing'] was true
+                                // But you can also set $.header['return'] to true
+                                console:console,
+                                header:new Proxy({},{
+                                        // Proxy to default all header cases to lowercase
+                                        // use arrays instead of replacing
+                                        set:function(obj,key,val){
+                                                key=key.toLowerCase();
+                                                if (!(key in obj)) obj[key]=[];
+                                                obj[key].push(val);
+                                        }
+                                }),
+                                cookie:{},
+                                error:function(code){
+                                        context.status=code;
+                                        context.die(http.STATUS_CODES[code]);
+                                },
+                                print:function(){
+                                        context.body+=Array.prototype.join.call(arguments,'');
+                                },
+                                die:function(){
+                                        context._die=true;
+                                        context.body=Array.prototype.join.call(arguments,'');
                                 }
                         };
 
                         // Start parsing the chunks (and scripts)
-                        for (let chunk of serve.chunks){
-                                if (typeof chunk === 'function'){
+                        (function next(chunks,i,done){
+                                context._async=false;
+
+                                if (context._die) return done(callback);
+
+                                let chunk=chunks[i++];
+                                //console.mass("L:%s, i:%s",chunks.length,i);
+                                if (chunk instanceof vm.Script){
                                         // Run script and append to body
                                         try{
-                                                $.body+=chunk($)||"";
+                                                context.DONE=function(err){
+                                                        delete context.DONE;
+                                                        if (err){
+                                                                console.warn("Script error:",err);
+                                                                context.error(500);
+                                                        }
+                                                        next(chunks,i,done);
+                                                };
+
+                                                //console.debug("Aftermath: %s",JSON.stringify(context));
+                                                chunk.runInNewContext(context);
+
+                                                //console.warn(context.times);
                                         }
                                         catch(err){
-                                                console.warn("Error parsing script block: %s",err);
-
-                                                $.status=500;
-                                                $.body='Internal Squeever Error';
-                                                break;
+                                                context.DONE(err);
                                         }
                                 }else{
                                         // Append to body immediately
-                                        $.body+=chunk;
+                                        context.body+=chunk;
                                 }
-                        }
+                                if (chunks.length==i) context._die=true;
+                                if (!context._async) return next(chunks,i,done);
+                        })(serve.chunks,0,function(callback){
+                                // Default content-type
+                                if (!('content-type' in context.header))
+                                        context.header['content-type']='text/html; charset=utf-8';
 
-                        // Calculate content-length
-                        if (!('content-length' in $.header))
-                                $.header['content-length']=Buffer.byteLength($.body,'utf-8');
+                                // Calculate content-length
+                                if (!('content-length' in context.header))
+                                        context.header['content-length']=Buffer.byteLength(context.body,'utf-8');
 
-                        return extend(serve,$);
+                                // Set cookie headers
+                                for (let c in context.cookie){
+                                        context.header['set-cookie']=c+'='+context.cookie[c]+';';
+                                }
+
+                                callback(extend(serve,context));
+                        });
                 }
         },
         data:function(data){
@@ -59,19 +114,21 @@ return {
 
                 var self=this;
 
+                // Parse the data as a .node script
                 while(data) data=data.replace(/^([\s\S]*?)(<%|%>|$)/,function(_,text,type){
                         if (type=='%>'){
                                 // Parsing a script
+
                                 // Conveniences
-                                if (text[0]=='='){
-                                        text='return '+text.slice(1);
+                                if (text[0]=='=') text='body+'+text;
+                                if (text[0]=='!') {
+                                        // async
+                                        text='_async=true;'+text.slice(1);
                                 }
-                                try{
-                                        self.chunks.push(Function('$',text));
-                                }
-                                catch(err){
-                                        console.error("Cannot parse chunk! %s",err);
-                                }
+
+                                console.mass("Script: %s",text);
+                                self.chunks.push(new vm.Script(text));
+                                //self.chunks.push(Function('$',text));
                         }else{
                                 // Parsing plaintext
                                 self.chunks.push(text);

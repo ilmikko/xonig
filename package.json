@@ -4,5 +4,8 @@
   "description": "Node.js php replacer for nginx with some additional functionality",
   "main": "index.js",
   "author": "ilmikko",
-  "license": "GPLv2"
+  "license": "GPLv2",
+  "dependencies": {
+    "mongodb": "^2.2.31"
+  }
 }

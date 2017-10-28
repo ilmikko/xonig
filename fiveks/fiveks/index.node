@@ -1,0 +1,17 @@
+<%=read('header.html')%>
+<% /*test*/ %>
+<%
+	ips=db.niceGet('test','ipcollection');
+%>
+Your ip is <%=IP%>. You have logged in <%=ips[IP].times%> time(s).
+<br>
+This script file is in <%=REALPATH%> as <%=PATH%>
+<br>
+Cookies!
+<%=JSON.stringify(COOKIES)%>
+<%
+        cookie['cookie-one']=1;
+        cookie['cookie-two']=2;
+        cookie['cookie-three']=3;
+%>
+<%=read('footer.html')%>

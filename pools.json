@@ -7,7 +7,7 @@
         {
                 "id":"dynamic",
                 "require":"./pool/dynamic.js",
-                "match":"text/node$",
-                "dir":"dynamic"
+                "match":"^text/node$",
+                "dir":["dynamic","fiveks"]
         }
 ]

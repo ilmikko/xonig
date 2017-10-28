@@ -1,9 +1,9 @@
 return {
         data:function(data){
                 this.body=data;
-                this.headers["Content-Length"]=Buffer.byteLength(data);
+                this.header["Content-Length"]=Buffer.byteLength(data);
         },
         mime:function(mime){
-                this.headers["Content-Type"]=mime;
+                this.header["Content-Type"]=mime;
         }
 };

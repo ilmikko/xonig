@@ -9,7 +9,13 @@ process.chdir(__dirname);
 console.debug('Loading modules...');
 
 console.mass('Internal modules...');
-const http=require('http'),https=require('https'),cp=require('child_process');
+const cp=require('child_process');
+
+global.vm=require('vm');
+global.pm=require('path');
+global.fs=require('fs');
+global.http=require('http');
+global.https=require('https');
 
 (function loadModules(){
         global.extend=function(a,b){for (var g in b) a[g]=b[g];return a;};
@@ -18,8 +24,11 @@ const http=require('http'),https=require('https'),cp=require('child_process');
         global.config=require("./conf.json");
 
         console.mass('Own modules...');
+        global.qs=require('./js/qs.js');
         global.mime=require('./js/mime.js');
         global.file=require('./js/file.js');
+
+        global.db=require('./js/db.js');
 
         global.pool=require('./js/pool.js');
 
@@ -76,31 +85,12 @@ console.info('All modules loaded.');
 // So it will be a lot easier and more efficient in terms of coding to just
 // load everything synchronously. We can then do async updates on the fly if we want to.
 
+// XXX HOWEVER, we still need to handle a race condition when we have async modules like MongoDB.
+// TODO: Handle race condition
+
 mime.update();
 pool.update();
 console.info('Server initialized!');
-
-function parseQueryString(qs){
-        var data={};
-
-        qs=qs.split('&');
-        for (let p of qs){
-                // Parse key-value pairs
-                let pi=p.indexOf('=')+1;
-
-                // If there is an '=' in p
-                if (pi){
-                        var k=decodeURIComponent(p.slice(0,pi-1)), v=decodeURIComponent(p.slice(pi));
-                        data[k]=v;
-                }else{
-                        // XXX: 'empty' URL data is true because it exists
-                        // For example: /path/to/my/application?debugmode
-                        data[p]=true;
-                }
-        }
-
-        return data;
-}
 
 function parseRequest(req,res,success,error){
         /*
@@ -108,19 +98,8 @@ function parseRequest(req,res,success,error){
                 It's not advisable to use variables on GET requests to change the body content
                 (https://tools.ietf.org/html/rfc2616#section-4.3)
                 but that is up for the server-side script programmer to keep in mind.
-
-                This tool combines all of the variables into one combined $.data object.
-                For convenience, we could also provide $.dataURI and $.dataBody to separate data
-                So you can use code like
-                if ($.method=='GET'){
-                        // use $.dataURI
-                }
-                else if ($.method=='POST')
-                {
-                        // use $.dataBody
-                }
-
-                But I think we're fine using just $.data.
+                This tool combines all of the data to the DATA object - no matter what
+                their origin was.
         */
 
         req.on('error',function(err){
@@ -145,7 +124,7 @@ function parseRequest(req,res,success,error){
         var path=url;
         if (si){
                 path=url.slice(0,si-1);
-                data=parseQueryString(url.slice(si));
+                data=qs.parse(url.slice(si));
         }
 
         // HTTP Body variables (async)
@@ -156,7 +135,7 @@ function parseRequest(req,res,success,error){
         });
         req.on('end',function(){
                 // Parse body
-                if (body) extend(data,parseQueryString(body));
+                if (body) extend(data,qs.parse(body));
 
                 success({
                         req:req,
@@ -167,6 +146,7 @@ function parseRequest(req,res,success,error){
         });
 }
 
+// TODO: Launch server only when everything has loaded (race condition)
 console.info('Launching server...');
 (function launchServer(){
         global.server = http.createServer(function(req,res){
@@ -176,9 +156,9 @@ console.info('Launching server...');
                 parseRequest(req,res,function success(o){
                         // Loop through pools, see if the path matches
                         pool.serve(o,function final(r){
-                                res.writeHead(r.status,r.headers);
+                                res.writeHead(r.status,r.header);
                                 res.end(r.body);
-                                console.info("%s: %s request served. (%s)",r.ip,req.method,req.url,r.status);
+                                console.info("%s: %s request served. (%s)",r.IP,req.method,req.url,r.status);
                         });
                 });
 
@@ -205,9 +185,9 @@ if (config.tls.enabled) {
                         parseRequest(req,res,function success(o){
                                 // Loop through pools, see if the path matches
                                 pool.serve(o,function final(r){
-                                        res.writeHead(r.status,r.headers);
+                                        res.writeHead(r.status,r.header);
                                         res.end(r.body);
-                                        console.info("%s: %s request (SSL/TLS) served. (%s)",r.ip,req.method,req.url,r.status);
+                                        console.info("%s: %s request (SSL/TLS) served. (%s)",r.IP,req.method,req.url,r.status);
                                 });
                         });
                 }).listen(config.tls.port,function(){
@@ -219,6 +199,15 @@ if (config.tls.enabled) {
 process.on('exit',function(){
         // XXX: Things to do when exiting
         console.log('Bye!');
+});
+
+// DEBUG: Console command 'flush'
+console.command.add('flush',function(path){
+        console.info('Fast flush of pools and mime types...');
+        pool.update();
+        mime.update();
+},{
+        help:"Flush the pools and mime types.\nUsage: flush\nThis command is lazily used for debugging purposes when there needs to be a fast update of the pools or mime types or whatever.\nIn production environments it is recommended to update everything by hand by using 'pool.update()' or 'mime.update()' (please use 'inspect' for more information), or alternatively perform a hard reset on the server service.\nHowever, for convenience, this command flushes all the needed information for easy scripting."
 });
 
 // DEBUG: Console command 'request'

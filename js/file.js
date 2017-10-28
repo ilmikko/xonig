@@ -1,10 +1,7 @@
-const pm=require("path"),fs=require("fs");
-
 console.debug("File.js initializing...");
 
 // OLD TODO: Distinguish between updating just the file contents or actually looping through the directories as well?
 // XXX Currently it's just the pricy update.
-// TODO: Remove external file npm dependency
 
 module.exports={
         get:function(path){
@@ -27,12 +24,16 @@ module.exports={
                 }
         },
         dir:function(o){
-                let dir=o.path,matchmime=o.match||".*",callback=o.callback||function(){};
-                console.debug("Loading directory recursively (%s)",dir);
-                try{
+                let directories=o.path,matchmimes=o.match||".*",callback=o.callback||function(){};
+
+                if (!(directories instanceof Array)) directories=[directories];
+                if (!(matchmimes instanceof Array)) matchmimes=[matchmimes];
+
+                for (let dir of directories){
+                        console.debug("Loading directory recursively (%s)",dir);
                         dir=pm.normalize(dir);
 
-                        var all=(function loadall(path){
+                        let all=(function loadall(path){
                                 var contents=fs.readdirSync(path),all=[];
                                 for (item of contents){
                                         let newpath=path+'/'+item;
@@ -55,22 +56,22 @@ module.exports={
                                 if (filename[0]=="."){
                                         console.warn("Ignoring hidden file %s",filepath);
                                 }else{
-                                        if (mime.match(mimetype,matchmime)){
-                                                callback({
-                                                        path:filepath,
-                                                        name:filename,
-                                                        index:filepath.replace(dir,""),
-                                                        mime:mimetype
-                                                });
-                                        }else{
-                                                console.warn("Ignoring file %s, mime mismatch (%s not in %s)",filepath,mimetype,matchmime);
+                                        for (let matchmime of matchmimes){
+                                                if (mime.match(mimetype,matchmime)){
+                                                        console.mass("File matches: %s %s, (%s)",filepath,filename,mimetype);
+                                                        callback({
+                                                                path:filepath,
+                                                                name:filename,
+                                                                index:filepath.replace(dir,""),
+                                                                mime:mimetype
+                                                        });
+                                                        break;
+                                                }else{
+                                                        console.warn("Ignoring file %s, mime mismatch (%s not in %s)",filepath,mimetype,matchmime);
+                                                }
                                         }
                                 }
                         }
-                }
-                catch(err){
-                        console.error("Cannot load directory! %s",err);
-                        throw err;
                 }
                 console.info("File cache updated!");
         }

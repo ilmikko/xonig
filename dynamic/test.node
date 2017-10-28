@@ -1,6 +1,6 @@
 <%
-        var body="Hello "+($.data['name']||'World')+", you have sent "+$.method+" with data ['test']="+$.data['test'];
+        var body="Hello "+(DATA['name']||'World')+", you have sent a "+METHOD+" request with data ['test'] "+DATA['test'];
         body+="<br><form method='post'><input name=test></form>";
 
-        return body;
+        die(body);
 %>

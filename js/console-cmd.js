@@ -10,7 +10,8 @@ function parseParams(params){
 var alias={
         ":q":"exit",
         "bye":"exit",
-        "quit":"exit"
+        "quit":"exit",
+        "close":"exit"
 };
 
 function parseInput(input){

@@ -5,9 +5,11 @@
                 <title>This is a test :D</title>
         </head>
         <body>
-                <h1><%=$.data['header']||"Header"%></h1>
+                <h1><%=DATA['header']||'Header'%></h1>
                 <h2>h2 Did you know that the header changes according to a variable</h2>
+                <p>The time is <%=Date.now()%></p>
                 <p>A paragraph with some text. It should be easy to manipulate the text output.
+
 
                 also whitespace doesn't matter so that's cool</p>
         </body>

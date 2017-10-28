@@ -10,7 +10,7 @@
                 "match":"text/.*"
         },
         "proxy":{
-                "enabled":true,
+                "enabled":false,
                 "header":"x-forwarded-for"
         },
         "tls":{

@@ -1,0 +1,8 @@
+<%
+        var a="This script contains an error."
+%>
+button
+<%
+        print(b);
+%>
+other
