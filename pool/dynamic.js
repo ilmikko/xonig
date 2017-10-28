@@ -65,14 +65,15 @@ return {
                                 if (chunk instanceof vm.Script){
                                         // Run script and append to body
                                         try{
-                                                context.DONE=function(err){
-                                                        delete context.DONE;
-                                                        if (err){
-                                                                console.warn("Script error:",err);
-                                                                context.error(500);
-                                                        }
+                                                context.FULFILL=function(){
+                                                        delete context.FULFILL;
                                                         next(chunks,i,done);
                                                 };
+						context.REJECT=function(err){
+                                                        delete context.REJECT;
+							console.warn("Script error: ",err);
+							context.error(500);
+						}
 
                                                 //console.debug("Aftermath: %s",JSON.stringify(context));
                                                 chunk.runInNewContext(context);

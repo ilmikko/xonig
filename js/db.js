@@ -5,20 +5,34 @@ let url = 'mongodb://'+host+':'+port+'/';
 
 module.exports={
         db:{},
-        use:function(dbpath,callback){
+        use:function(dbpath){
                 console.log('Mongo connecting...');
                 var self=this;
-                mongo.connect(url+dbpath,function(err,db){
-                        if (err) throw err;
-                        console.log("Use DB: '%s'",dbpath);
-                        callback(self.db[dbpath]=db);
-                });
+		return new Promise(function(fulfill, reject){
+			mongo.connect(url+dbpath,function(err,db){
+				if (err) {
+					reject(err);
+				} else {
+					console.log("Use DB: '%s'",dbpath);
+					fulfill(self.db[dbpath]=db);
+				}
+			});
+		});
         },
         get:function(db,col){
                 if (!(db in this.db)) throw new Error("DB '"+db+"' not defined."); else db=this.db[db];
                 if (col) return db.collection(col); else return db;
         }
 };
+
+// Test connection, warn if it fails
+mongo.connect(url,function(err,db){
+	if (err) {
+		console.error(err);
+	}else{
+		console.info("Successfully connected to MongoDB database at: "+url);
+	}
+});
 
 // XXX DEBUG: Remove this afterwards
 /*module.exports.use('debug',function(db){

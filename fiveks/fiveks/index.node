@@ -1,8 +1,13 @@
 <%=read('header.html')%>
 <%!
-        db.use('test',function(db){
-                DONE();
-        });
+        db
+	.use('test')
+	.catch(function(err){
+		REJECT(err);
+	})
+	.then(function(){
+		FULFILL();
+	});
 %>
 <%!
         col=db.get('test','ipcollection')
@@ -13,14 +18,14 @@
                 .findOne({ip:IP})
                 .then(function($){
                         times=$.logins;
-                        DONE();
+                        FULFILL();
                 })
                 .catch(function(err){
-                        DONE(err);
+                        REJECT(err);
                 });
         })
         .catch(function(err){
-                DONE(err);
+                REJECT(err);
         });
 %>
 Your ip is <%=IP%>. You have logged in <%=times%> time(s).
