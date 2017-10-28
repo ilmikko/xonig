@@ -54,7 +54,7 @@ module.exports={
 
                                 // Ignore hidden files
                                 if (filename[0]=="."){
-                                        console.warn("Ignoring hidden file %s",filepath);
+                                        console.log("Ignoring hidden file %s",filepath);
                                 }else{
                                         for (let matchmime of matchmimes){
                                                 if (mime.match(mimetype,matchmime)){
@@ -67,7 +67,7 @@ module.exports={
                                                         });
                                                         break;
                                                 }else{
-                                                        console.warn("Ignoring file %s, mime mismatch (%s not in %s)",filepath,mimetype,matchmime);
+                                                        console.debug("Ignoring file %s, mime mismatch (%s not in %s)",filepath,mimetype,matchmime);
                                                 }
                                         }
                                 }

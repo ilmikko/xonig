@@ -2,7 +2,7 @@
         {
                 "id":"static",
                 "require":"./pool/static.js",
-                "match":"text/(html|plain)",
+                "match":"^text/(html|plain)$",
 		"dir":["/home/iveks/Desktop/Showcase"]
         },
         {
@@ -10,5 +10,11 @@
                 "require":"./pool/dynamic.js",
                 "match":"^text/node$",
                 "dir":["dynamic","fiveks","/home/iveks/Desktop/Showcase"]
-        }
+        },
+	{
+		"id":"binary",
+		"require":"./pool/binary.js",
+		"match":"^(image/.*|audio/.*|video/.*)$",
+		"dir":["binary","/home/iveks/Desktop/Showcase"]
+	}
 ]

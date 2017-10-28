@@ -12,8 +12,9 @@ return {
                                 _async:false,
                                 RESPONSE:o.res,
                                 REQUEST:o.req,
-                                PATH:o.path,
-                                REALPATH:serve.realpath,
+                                PATH:pm.dirname(o.path),
+                                REALPATH:pm.dirname(serve.realpath),
+				FILENAME:pm.basename(o.path),
                                 IP:o.IP,
                                 METHOD:o.req.method,
                                 SECURE:(o.req.connection.encrypted===true),
@@ -22,6 +23,53 @@ return {
                                         return qs.parse(ch);
                                 })(o.req.headers.cookie),
                                 HEADERS:o.req.headers,
+				FS:(function(){
+					function prependCurrentPathIfPossible(val){
+						if (typeof val==='function'){
+							return function(){
+								// change argument paths, context dependent
+								// context.FS.dirname(context.REALPATH)
+								for (let g=0,gg=arguments.length;g<gg;g++) if (typeof arguments[g]==='string') {
+									// replace . with real path
+									var firstCharacter=arguments[g][0];
+									if (firstCharacter=='.'){
+										arguments[g]=context.REALPATH+'/'+arguments[g];
+									}else if (firstCharacter=='/'){
+										arguments[g]='.'+arguments[g];
+									}
+								}
+								val.apply(val,arguments);
+							}
+						}else{
+							return val;
+						}
+					}
+					var custom={
+						listdir:function(path,callback){
+							// Wrapper around fs.readdir
+							fs.readdir(path,(err,files)=>{
+								if (err) callback(err); else{
+									path=pm.relative(context.REALPATH,path);
+									for (var g=0,gg=files.length;g<gg;g++){
+										files[g]=pm.normalize('./'+context.PATH+'/'+path+'/'+files[g]);
+									}
+									callback(null,files);
+								}
+							});
+						}
+					}
+					return new Proxy({},{
+						get:function(obj,key){
+							if (key in fs) {
+								return prependCurrentPathIfPossible(fs[key]);
+							}else if (key in pm){
+								return prependCurrentPathIfPossible(pm[key]);
+							}else if (key in custom){
+								return prependCurrentPathIfPossible(custom[key]);
+							}else return obj;
+						}
+					});
+				})(),
 				DB:(function(){
 					var dbdata={};
 					var currentdb=null;
@@ -66,7 +114,7 @@ return {
                                         context.die(http.STATUS_CODES[code]);
                                 },
                                 print:function(){
-                                        context.body+=Array.prototype.join.call(arguments,'');
+                                        context.body+=Array.prototype.join.call(arguments,'')+'\n';
                                 },
                                 die:function(){
                                         context._die=true;

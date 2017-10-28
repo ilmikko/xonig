@@ -101,6 +101,8 @@ module.exports={
                         callback(extend({IP:o.IP},statics[path]));
                 }else if (path in dynamics){
                         dynamics[path](o,callback);
+		}else if (path in binaries){
+			binaries[path](o,callback);
                 }else{
                         // 404
                         o.status=404;

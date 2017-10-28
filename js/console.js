@@ -55,7 +55,7 @@ var levels={
         warn:50,
         back:1000,
         massback:1000,
-        log:-1,
+        log:1,
         debug:-10,
         mass:-100
 };
