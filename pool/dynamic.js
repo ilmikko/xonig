@@ -5,6 +5,8 @@ return {
         dynamic:function(serve){
                 return function(o,callback){
                         // Construct the context (yes, every time.)
+			// Convention: UPPERCASE is for stuff that already exists, or comes from the client. lowercase is for stuff that you, as a server, set.
+			// For example: IP is the client ip address, but status is the status you're going to send to the client.
                         var context={
                                 _die:false,
                                 _async:false,
@@ -20,9 +22,27 @@ return {
                                         return qs.parse(ch);
                                 })(o.req.headers.cookie),
                                 HEADERS:o.req.headers,
+				DB:(function(){
+					var dbdata={};
+					var currentdb=null;
+					return {
+						use:function(dbname){
+							return db.connect(dbname)
+							.catch(function(err){
+								context.REJECT(err);
+							})
+							.then(function(db){
+								dbdata[currentdb=dbname]=db;
+							});
+						},
+						get:function(collection){
+							return dbdata[currentdb].collection(collection);
+						}
+					};
+				})(),
                                 status:200,
-                                fs:fs,
-                                db:db,
+                                fs:fs, //debug
+                                db:db, //debug
                                 body:'',
                                 read:function(fn){
                                         return fs.readFileSync(pm.dirname(serve.realpath)+'/'+fn);
@@ -70,9 +90,10 @@ return {
                                                         next(chunks,i,done);
                                                 };
 						context.REJECT=function(err){
-                                                        delete context.REJECT;
+                                                        delete context.FULFILL;
 							console.warn("Script error: ",err);
 							context.error(500);
+                                                        next(chunks,i,done);
 						}
 
                                                 //console.debug("Aftermath: %s",JSON.stringify(context));
@@ -81,7 +102,7 @@ return {
                                                 //console.warn(context.times);
                                         }
                                         catch(err){
-                                                context.DONE(err);
+                                                context.REJECT(err);
                                         }
                                 }else{
                                         // Append to body immediately

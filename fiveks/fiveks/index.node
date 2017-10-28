@@ -1,21 +1,14 @@
 <%=read('header.html')%>
 <%!
-        db
-	.use('test')
-	.catch(function(err){
-		REJECT(err);
-	})
-	.then(function(){
-		FULFILL();
-	});
+        DB.use('test').then(FULFILL);
 %>
 <%!
-        col=db.get('test','ipcollection')
-        col
+	col=DB.get('ipcollection');
+	col
         .update({ip:IP},{$inc:{logins:1}},{upsert:true})
-        .then(function(thing){
+        .then(function(){
                 col
-                .findOne({ip:IP})
+		.findOne({ip:IP})
                 .then(function($){
                         times=$.logins;
                         FULFILL();
