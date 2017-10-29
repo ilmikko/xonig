@@ -2,6 +2,7 @@ var configpaths=["./pools.json"];
 
 var pools=[];
 
+// FIXME: The pool needs a cleanup
 var statics={},dynamics={};
 
 module.exports={
@@ -59,8 +60,8 @@ module.exports={
                                                         }
 
                                                         // If the pool is dynamic, put into dynamics. Otherwise put into statics
-                                                        if (pool.dynamic){
-                                                                dynamics[file.index]=pool.dynamic(serve);
+                                                        if (pool.serve){
+                                                                dynamics[file.index]=pool.serve(serve);
                                                         }else{
                                                                 statics[file.index]=serve;
                                                         }
@@ -96,15 +97,13 @@ module.exports={
                 }else{
                         o.IP=o.req.connection.remoteAddress;
                 }
-
+o.o
                 if (path in statics){
                         callback(extend({IP:o.IP},statics[path]));
                 }else if (path in dynamics){
                         dynamics[path](o,callback);
-		}else if (path in binaries){
-			binaries[path](o,callback);
-                }else{
-                        // 404
+		}else{
+                        // 404 Pool is closed
                         o.status=404;
                         o.body=http.STATUS_CODES[404];
 

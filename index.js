@@ -115,7 +115,7 @@ function parseRequest(req,res,success,error){
                 console.error('RES '+err);
         });
 
-        var url=req.url; // TODO: normalize the URI
+        var url=decodeURIComponent(req.url); // TODO: normalize the URI
         var headers=req.headers;
 
         // URI variables (sync)

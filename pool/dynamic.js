@@ -2,7 +2,7 @@ return {
         path:function(path){
                 this.realpath=path;
         },
-        dynamic:function(serve){
+        serve:function(serve){
                 return function(o,callback){
                         // Construct the context (yes, every time.)
 			// Convention: UPPERCASE is for stuff that already exists, or comes from the client. lowercase is for stuff that you, as a server, set.
