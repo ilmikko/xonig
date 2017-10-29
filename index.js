@@ -16,6 +16,7 @@ global.pm=require('path');
 global.fs=require('fs');
 global.http=require('http');
 global.https=require('https');
+global.etag=require('etag');
 
 (function loadModules(){
         global.extend=function(a,b){for (var g in b) a[g]=b[g];return a;};
