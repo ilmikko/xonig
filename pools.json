@@ -3,18 +3,18 @@
                 "id":"static",
                 "require":"./pool/static.js",
                 "match":"^text/(html|plain)$",
-		"dir":["/home/iveks/Desktop/Showcase"]
+		"dir":["static"]
         },
         {
                 "id":"dynamic",
                 "require":"./pool/dynamic.js",
                 "match":"^text/node$",
-                "dir":["dynamic","fiveks","/home/iveks/Desktop/Showcase"]
+                "dir":["dynamic"]
         },
 	{
 		"id":"binary",
 		"require":"./pool/binary.js",
 		"match":"^(image/.*|audio/.*|video/.*)$",
-		"dir":["binary","/home/iveks/Desktop/Showcase"]
+		"dir":["binary"]
 	}
 ]
