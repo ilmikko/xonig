@@ -1,0 +1,44 @@
+{
+	"scopeName": "text.js.node",
+	"name": "Node JS",
+	"fileTypes": ["nodejs", "njs"],
+	"injections": {
+		"text.js.node - (meta.embedded | meta.tag), L:text.html.node meta.tag, L:source.js.embedded.html": {
+			"patterns": [{
+				"begin": "<[%?]",
+				"beginCaptures": {
+					"0": {
+						"name": "punctuation.section.embedded.begin.node"
+					}
+				},
+				"end": ">",
+				"endCaptures": {
+					"0": {
+						"name": "punctuation.section.embedded.end.node"
+					}
+				},
+				"name": "meta.embedded.line.node",
+				"patterns": [{
+					"begin": "\\G",
+					"contentName": "source.js",
+					"end": "([%?])(?=>)",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.section.embedded.end.node"
+						},
+						"1": {
+							"name": "source.js"
+						}
+					},
+					"patterns": [{
+						"include": "source.js"
+					}]
+				}]
+			}]
+		}
+	},
+	"patterns": [{
+		"include": "text.html.basic"
+	}],
+	"repository": {}
+}

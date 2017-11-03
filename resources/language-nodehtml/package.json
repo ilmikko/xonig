@@ -1,0 +1,18 @@
+{
+  "_id": "language-node@0.0.1",
+  "_location": "/language-node",
+  "dependencies": {},
+  "description": "Node HTML language support in Atom",
+  "devDependencies": {
+    "coffeelint": "^1.10.1"
+  },
+  "engines": {
+    "atom": "*",
+    "node": "*"
+  },
+  "license": "MIT",
+  "name": "language-node",
+  "optionalDependencies": {},
+  "readmeFilename": "README.md",
+  "version": "0.0.1"
+}
