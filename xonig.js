@@ -22,7 +22,13 @@ module.exports=global.xonig={
 	http:http,
 	https:https,
 	etag:etag,
-	config:{},
+	resetConfig:function(){
+		global.config={};
+	},
+	loadConfig:function(config){
+		extend(global.config,config);
+		this.checkConfig();
+	},
 	checkConfig:function(){
 		if (config.production){
 			// Production mode
@@ -200,14 +206,20 @@ module.exports=global.xonig={
 		this.pool.update();
 		console.info('Server initialized!');
 	},
-	start:function(_config){
+	start:function(config){
 		return new Promise((fulfill,reject)=>{
 			// XXX HOWEVER, we still need to handle a race condition when we have async modules like MongoDB.
 
+			this.resetConfig();
+
+			// try loading the default config file
 			try{
-				this.reloadConfig();
-				extend(global.config,_config);
-				this.checkConfig();
+				this.loadConfig(JSON.parse(fs.readFileSync('./conf.json')));
+			}
+			catch(err){}
+
+			try{
+				this.loadConfig(config);
 
 				this.init();
 
