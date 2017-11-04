@@ -1,4 +1,5 @@
 console.debug("File.js initializing...");
+const fs=xonig.fs,pm=xonig.pm,mime=xonig.mime;
 
 // OLD TODO: Distinguish between updating just the file contents or actually looping through the directories as well?
 // XXX Currently it's just the pricy update.
@@ -23,6 +24,16 @@ module.exports={
                         throw err;
                 }
         },
+	json:function(path){
+		var data=this.get(path);
+                try{
+                        return JSON.parse(data);
+                }
+                catch(err){
+                        console.error("Error in json file: %s",err);
+                        throw err;
+                }
+	},
         dir:function(o){
                 let directories=o.path,matchmimes=o.match||".*",callback=o.callback||function(){};
 

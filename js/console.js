@@ -55,7 +55,7 @@ var levels={
         warn:50,
         back:1000,
         massback:1000,
-        log:1,
+        log:1000,
         debug:-10,
         mass:-100
 };
@@ -69,7 +69,7 @@ console = new Proxy({
         get:function(target,key){
                 if (key in target) return target[key]; else {
                         return function(){
-                                if (key in levels) if (console.level>levels[key]) return;
+                                if (!(key in levels)||console.level>levels[key]) return;
                                 if (key in format) arguments[0]=format[key].replace("%s",arguments[0]);
                                 log.apply(console,arguments);
                         }

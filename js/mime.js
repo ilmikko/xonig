@@ -1,6 +1,5 @@
-const pm=require("path"),fs=require("fs");
-
 console.debug("Mime.js initializing...");
+const fs=xonig.fs,pm=xonig.pm;
 
 const JSONRegExp=require("./JSONRegExp.js");
 

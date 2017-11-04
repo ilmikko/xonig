@@ -1,4 +1,6 @@
 {
+	"production":false,
+	"debug":true,
         "port":2222,
         "max_processes":5,
         "mime":{

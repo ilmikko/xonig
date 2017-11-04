@@ -1,3 +1,6 @@
+const http=xonig.http,file=xonig.file,fs=xonig.fs;
+
+console.debug("Pool.js initializing...");
 var configpaths=["./pools.json"];
 
 var pools=[];
@@ -13,13 +16,13 @@ module.exports={
                 this.updatepools();
         },
         loadconfig:function(path){
-                console.log("Loading pool config from disk... (%s)",path);
+                console.debug("Loading pool config from disk... (%s)",path);
                 try{
                         var arr=JSON.parse(fs.readFileSync(path));
                         for (let pool of arr){
                                 // If there is a requirement script, execute that script
                                 // and extend pool with the return values
-                                if (pool.require) extend(pool,file.js(pool.require));
+                                if (pool.require) extend(pool,require(pool.require));
                                 console.debug("New pool: %s",JSON.stringify(pool));
                                 pools.push(pool);
                         }
@@ -63,6 +66,7 @@ module.exports={
                                                         if (pool.serve){
                                                                 dynamics[file.index]=pool.serve(serve);
                                                         }else{
+								console.log('Put into statics because '+pool.serve);
                                                                 statics[file.index]=serve;
                                                         }
                                                 }
@@ -82,30 +86,39 @@ module.exports={
         serve:function(o,callback){
                 var path=o.path;
 
+		if (!('header' in o)) o.header={};
+
+		// NOTE DEBUG: pass through header
+		if (config.debug&&o.req.headers['debug-pass-through']) o.header['debug-pass-through']=o.req.headers['debug-pass-through'];
+
                 // If we're behind a proxy, use the proxy header instead
                 // to determine the ip of the remote address.
                 if (config.proxy.enabled){
                         if (config.proxy.header in o.req.headers){
-                                o.IP=o.req.headers[config.proxy.header];
+                                o.ip=o.req.headers[config.proxy.header];
                         }else{
                                 console.error("CRITICAL: Proxy enabled but proxy header not set. Please check your proxy settings!");
 
                                 o.status=500;
                                 o.body=http.STATUS_CODES[500];
+
+				o.res.writeHead(o.status,o.header);
+				o.res.end(o.body);
+
                                 return callback(o);
                         }
                 }else{
-                        o.IP=o.req.connection.remoteAddress;
+                        o.ip=o.req.connection.remoteAddress;
                 }
-o.o
-                if (path in statics){
-                        callback(extend({IP:o.IP},statics[path]));
-                }else if (path in dynamics){
+
+                if (path in dynamics){
                         dynamics[path](o,callback);
 		}else{
                         // 404 Pool is closed
-                        o.status=404;
-                        o.body=http.STATUS_CODES[404];
+			extend(o,{status:404,body:http.STATUS_CODES[404]});
+
+			o.res.writeHead(o.status,o.header);
+			o.res.end(o.body);
 
                         callback(o);
                 }

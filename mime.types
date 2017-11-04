@@ -3,6 +3,7 @@ types {
         text/node               node;
         text/node-html          htmn;
 
+	text/plain		txt;
         text/html               html htm shtml;
         text/css                css;
         application/javascript  js;

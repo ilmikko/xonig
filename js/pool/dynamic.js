@@ -1,4 +1,5 @@
-return {
+const vm=require('vm'),pm=xonig.pm,qs=xonig.qs,fs=xonig.fs,db=xonig.db,http=xonig.http;
+module.exports={
         path:function(path){
                 this.realpath=path;
         },
@@ -15,7 +16,7 @@ return {
                                 PATH:pm.dirname(o.path),
                                 REALPATH:pm.dirname(serve.realpath),
 				FILENAME:pm.basename(o.path),
-                                IP:o.IP,
+                                IP:o.ip,
                                 METHOD:o.req.method,
                                 SECURE:(o.req.connection.encrypted===true),
                                 DATA:o.data,
@@ -172,7 +173,12 @@ return {
                                         context.header['set-cookie']=c+'='+context.cookie[c]+';';
                                 }
 
-                                callback(extend(serve,context));
+				var r=extend(serve,context);
+
+				o.res.writeHead(r.status,r.header);
+				o.res.end(r.body);
+
+                                callback(r);
                         });
                 }
         },

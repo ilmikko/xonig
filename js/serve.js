@@ -1,5 +1,5 @@
 // For serving more complex dynamic files (i.e. text/node, streams)
-const fs=require("fs");
+const fs=xonig.fs;
 
 process.on("message",function(data){
         //THE RACE IS ON.
