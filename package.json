@@ -4,12 +4,17 @@
   "description": "A node.js server specifically designed to host embedded HTML documents with ease",
   "main": "index.js",
   "author": "ilmikko",
-  "license": "GPL",
+  "license": "GPL-2.0",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --reporter spec"
+  },
   "dependencies": {
     "etag": "^1.8.1",
     "mongodb": "^2.2.31"
   },
   "devDependencies": {
-    "mocha": "^4.0.1"
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1",
+    "request": "^2.83.0"
   }
 }
