@@ -36,17 +36,17 @@ module.exports={
                 var data;
                 try{
                         data=fs.readFileSync(path);
+			try{
+	                        data=parse(data);
+	                        extend(this.types,data.types);
+	                        extend(this.exts,data.exts);
+	                }
+	                catch(err){
+	                        console.warn("Error parsing mime types from disk! "+err);
+	                }
                 }
                 catch(err){
                         console.warn("Cannot load mime types from disk! "+err);
-                }
-                try{
-                        data=parse(data);
-                        extend(this.types,data.types);
-                        extend(this.exts,data.exts);
-                }
-                catch(err){
-                        console.warn("Error parsing mime types from disk! "+err);
                 }
         },
         types:{},
