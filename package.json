@@ -1,12 +1,15 @@
 {
   "name": "Xonig",
   "version": "1.2.0",
-  "description": "Node.js php replacer for nginx with some additional functionality",
+  "description": "A node.js server specifically designed to host embedded HTML documents with ease",
   "main": "index.js",
   "author": "ilmikko",
   "license": "GPL",
   "dependencies": {
     "etag": "^1.8.1",
     "mongodb": "^2.2.31"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1"
   }
 }
