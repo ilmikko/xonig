@@ -6,11 +6,10 @@ var configpaths=["./pools.json"];
 var pools=[];
 
 // FIXME: The pool needs a cleanup
-var statics={},dynamics={};
+var servepaths={};
 
 module.exports={
-        dynamics:dynamics,
-        statics:statics,
+        servepaths:servepaths,
         update:function(){
                 this.updateconfigs();
                 this.updatepools();
@@ -34,7 +33,7 @@ module.exports={
         },
         updateconfigs:function(){
                 console.debug("Updating pool configs...");
-                pools=[];statics={};dynamics={};
+                pools=[];servepaths={};
                 for (let path of configpaths) this.loadconfig(path);
                 console.info("Pool configs updated!");
         },
@@ -62,12 +61,12 @@ module.exports={
                                                                 pool.data.call(serve,data);
                                                         }
 
-                                                        // If the pool is dynamic, put into dynamics. Otherwise put into statics
+                                                        // Pools are now always put into servepaths.
                                                         if (pool.serve){
-                                                                dynamics[file.index]=pool.serve(serve);
+                                                                servepaths[file.index]=pool.serve(serve);
                                                         }else{
-								console.log('Put into statics because '+pool.serve);
-                                                                statics[file.index]=serve;
+								// TODO: default serve function for pools?
+								throw new Error("Pool needs a serve function!");
                                                         }
                                                 }
                                                 catch(err){
@@ -111,8 +110,8 @@ module.exports={
                         o.ip=o.req.connection.remoteAddress;
                 }
 
-                if (path in dynamics){
-                        dynamics[path](o,callback);
+                if (path in servepaths){
+                        servepaths[path](o,callback);
 		}else{
                         // 404 Pool is closed
 			extend(o,{status:404,body:http.STATUS_CODES[404]});
