@@ -10,10 +10,7 @@ var qs;
 console.debug('Starting in '+__dirname);
 process.chdir(__dirname);
 
-global.extend=function(a,b){
-	for (var g in b) if (typeof a[g]==='object'&&typeof b[g]==='object') a[g]=extend(a[g],b[g]); else a[g]=b[g];
-	return a;
-};
+global.extend=function(a,b){ for (var g in b) a[g]=b[g]; return a; };
 
 module.exports=global.xonig={
 	cp:cp,
