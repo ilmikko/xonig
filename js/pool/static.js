@@ -16,8 +16,6 @@ module.exports={
 			o.res.writeHead(o.status,o.header);
 			o.res.end(o.body);
 
-                        console.log(o.ip);
-
 			callback(o);
 		}
 	}

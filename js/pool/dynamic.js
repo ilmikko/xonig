@@ -173,7 +173,12 @@ module.exports={
                                         context.header['set-cookie']=c+'='+context.cookie[c]+';';
                                 }
 
-				var r=extend(serve,context);
+				var r={};
+
+                                r.ip=o.ip;
+                                r.status=context.status;
+                                r.header=extend(o.header,context.header);
+                                r.body=context.body;
 
 				o.res.writeHead(r.status,r.header);
 				o.res.end(r.body);
