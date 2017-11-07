@@ -7,11 +7,17 @@ module.exports={
                 this.header["content-type"]=mime;
         },
 	serve:function(serve){
-		return function(t,callback){
-                        var o=extend(Object.assign({},t),serve);
-                        extend(o.header,t.header);
+		return function(o,callback){
+                        extend(o.header,serve.header);
+
+                        o.body=serve.body;
+                        o.status=serve.status;
+
 			o.res.writeHead(o.status,o.header);
 			o.res.end(o.body);
+
+                        console.log(o.ip);
+
 			callback(o);
 		}
 	}
