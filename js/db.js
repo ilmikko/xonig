@@ -1,6 +1,15 @@
+if (!config.database.enabled){
+	return;
+}
 console.info("Database initializing...");
+
+// We currently only support one database type, which is mongodb.
+if (config.database.type&&config.database.type!="mongodb"){
+	throw new Error('Unsupported database type: '+config.database.type);
+}
+
 let mongo = require('mongodb').MongoClient;
-let port=27017,host='localhost';
+let port = config.database.port||27017, host=config.database.host||'localhost';
 let url = 'mongodb://'+host+':'+port+'/';
 
 module.exports={
@@ -21,7 +30,7 @@ module.exports={
 // Test connection, warn if it fails
 mongo.connect(url,function(err,db){
 	if (err) {
-		console.error(err);
+		throw new Error(err);
 	}else{
 		console.info("Successfully connected to MongoDB database at: "+url);
 	}

@@ -1,25 +1,31 @@
 {
 	"production":false,
 	"debug":true,
-        "port":2222,
-        "max_processes":5,
-        "mime":{
-                "file_paths":["./mime.types","/etc/nginx/mime.types"],
-                "default":"application/octet-stream"
-        },
-        "default":{
-                "dir":"./serve",
-                "match":"text/.*"
-        },
-        "proxy":{
-                "enabled":false,
-                "header":"x-forwarded-for"
-        },
-        "tls":{
-                "enabled":false,
-                "port":2233,
-                "key":"./key.pem",
-                "cert":"./cert.pem",
-                "pass":"passphrase"
-        }
+	"port":2222,
+	"max_processes":5,
+	"mime":{
+		"file_paths":["./mime.types","/etc/nginx/mime.types"],
+		"default":"application/octet-stream"
+	},
+	"default":{
+		"dir":"./serve",
+		"match":"text/.*"
+	},
+	"database":{
+		"enabled":false,
+		"type":"mongodb",
+		"host":"localhost",
+		"port":27017
+	},
+	"proxy":{
+		"enabled":false,
+		"header":"x-forwarded-for"
+	},
+	"tls":{
+		"enabled":false,
+		"port":2233,
+		"key":"./key.pem",
+		"cert":"./cert.pem",
+		"pass":"passphrase"
+	}
 }
