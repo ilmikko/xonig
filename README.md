@@ -1,7 +1,7 @@
 Please note that this is a development version.
 Don't use this in production!
 
-== Installation ==
+## Installation
 
 Clone the repository locally.
 `git clone https://github.com/ilmikko/xonig`
@@ -11,10 +11,13 @@ Clone the repository locally.
 Install the required module dependencies.
 `npm install`
 
+Test that your installation works.
+`npm test`
+
 That's it!
 Optionally you can also install mongodb on your machine and make the script point to the location to get database access (config file coming soon).
 
-== Usage ==
+## Usage
 
 You can configure the file pools to match specific mime types or directories.
 The default mime types served as dynamic node scripts are 'text/node', which the server recognizes from the special '.node' extension.
